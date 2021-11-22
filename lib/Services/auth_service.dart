@@ -25,8 +25,9 @@ class AuthService {
     );
     print(res.statusCode);
     print('------------------------------------------');
-    print({res.headers.map.values.toList()[1]});
-    var session_list = res.headers.map.values.toList()[1];
+    print({res.headers.map.values.toList()[2]});
+    print({res.data});
+    var session_list = res.headers.map.values.toList()[2];
     print('------------------------------------------');
     print(session_list[0].runtimeType);
     print('------------------------------------------');

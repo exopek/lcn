@@ -79,7 +79,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     Response bla = await logind.login(_usernameController.text, _passwordController.text);
     print(bla.headers.map.values.toList()[1].length);
-    if (bla.statusCode == 200 && bla.headers.map.values.toList()[1].length == 2) {
+    if (bla.statusCode == 200 && bla.headers.map.values.toList()[2].length == 2) {
       final futureGetTableaus = ref.read(dioTableauProvider);
       List bla2 = await futureGetTableaus.getTableaus();
       print('----------------------');
