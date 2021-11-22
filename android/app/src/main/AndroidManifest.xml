@@ -4,7 +4,7 @@
    <application
         android:usesCleartextTraffic="true"
         android:supportsRtl="true"
-        android:label="lcn"
+        android:label="LCN-GVS"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

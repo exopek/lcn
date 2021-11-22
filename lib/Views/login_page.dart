@@ -74,16 +74,21 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     List elements = [];
     List items = [];
     */
+    List _customData = [];
     final logind = ref.read(dioAuthProvider);
 
     Response bla = await logind.login(_usernameController.text, _passwordController.text);
     print(bla.headers.map.values.toList()[1].length);
     if (bla.statusCode == 200 && bla.headers.map.values.toList()[1].length == 2) {
       final futureGetTableaus = ref.read(dioTableauProvider);
-      Response bla2 = await futureGetTableaus.getTableaus();
+      List bla2 = await futureGetTableaus.getTableaus();
+      print('----------------------');
+      print('login Data');
+      print('${bla.data['d']['CustomData']['Strings']}');
+      _customData = bla.data['d']['CustomData']['Strings'];
       Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => HomePage())
+          MaterialPageRoute(builder: (context) => HomePage(tableauNames: _customData,))
       );
       //print('tableaus response');
       //print(bla2.data);
@@ -205,10 +210,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           SliverPadding(
             padding: EdgeInsets.all(20.0),
             sliver: SliverToBoxAdapter(
-              child: Container(
-                width: MediaQuery.of(context).size.width*0.6,
-                  child: _loginButton(context)
-              ),
+              child:  _loginButton(context)
             ),
           )
         ],
@@ -249,7 +251,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     return Container(
       height: 80.0,
       width: MediaQuery.of(context).size.width*0.6,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.all(Radius.circular(15.0))
       ),
@@ -257,14 +259,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         onPressed: () {_getAuthStatus();},
         style: ButtonStyle(
           overlayColor: MaterialStateProperty.all(
-            Colors.white
-          )
+            Colors.grey
+          ),
+            shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15.0)
+            ))
         ),
         child: const Center(
           child: Text(
             'Login',
             style: TextStyle(
-              color: Colors.grey,
+              color: Colors.black,
               fontSize: 20.0
             ),
           ),

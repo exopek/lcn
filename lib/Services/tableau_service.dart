@@ -12,7 +12,8 @@ class TableauService extends StateNotifier<Dio> {
 
   //final Dio _dio = Dio();
 
-  Future<Response> getTableaus() async {
+  Future<List> getTableaus() async {
+    List _tableauList = [];
     String serviceMethod = "GetTableaus";
     Dio _dio = ref.watch(dioProvider);
     Response res = await _dio.post(
@@ -22,7 +23,14 @@ class TableauService extends StateNotifier<Dio> {
     print('drin');
     Map resMap = res.data;
     print(resMap);
-    return res;
+    List _listOfItems = resMap['d']['Items'];
+    _listOfItems.forEach((element) {
+      if (element['Tableaus'].isNotEmpty) {
+        _tableauList.add({'${element['Name']}': element['Tableaus']});
+      }
+    });
+    print(_tableauList);
+    return _tableauList;
   }
 
   Future openTableaus() async {

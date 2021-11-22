@@ -39,7 +39,7 @@ class _AdministrationPageState extends State<AdministrationPage> {
           if (index == 0) {
             Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => HomePage())
+                MaterialPageRoute(builder: (context) => HomePage(tableauNames: [{'Value': 'bla'}],))
             );
           }
         },

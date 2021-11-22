@@ -17,7 +17,7 @@ final dioAuthProvider = Provider<AuthService>((ref) {
   return AuthService(ref);
 });
 
-final futureGetTableausProvider = FutureProvider<Response>((ref) {
+final futureGetTableausProvider = FutureProvider<List>((ref) {
   return TableauService(ref).getTableaus();
 });
 
@@ -27,4 +27,8 @@ final futureGetStatusProvider = FutureProvider<Response>((ref) {
 
 final futureLogoutProvider = FutureProvider<Response>((ref) {
   return AuthService(ref).logout();
+});
+
+final futureGetUserCostumDataProvider = FutureProvider<Response>((ref) {
+  return AuthService(ref).getUserCustomData();
 });
