@@ -29,6 +29,9 @@ final futureLogoutProvider = FutureProvider<Response>((ref) {
   return AuthService(ref).logout();
 });
 
+/*
 final futureGetUserCostumDataProvider = FutureProvider<Response>((ref) {
   return AuthService(ref).getUserCustomData();
 });
+
+ */

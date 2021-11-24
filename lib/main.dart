@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import 'Views/login_page.dart';
 
-void main() {
+void main() async {
+  await Hive.initFlutter();
+
   runApp(
     ProviderScope(
         child: const MyApp())

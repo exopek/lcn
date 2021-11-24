@@ -74,21 +74,26 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     List elements = [];
     List items = [];
     */
-    List _customData = [];
+    List _tableauNames = [];
+    Map _customData = new Map();
     final logind = ref.read(dioAuthProvider);
 
     Response bla = await logind.login(_usernameController.text, _passwordController.text);
     print(bla.headers.map.values.toList()[1].length);
-    if (bla.statusCode == 200 && bla.headers.map.values.toList()[2].length == 2) {
+    if (bla.statusCode == 200 && bla.headers.map.values.toList()[1].length == 2) {
       final futureGetTableaus = ref.read(dioTableauProvider);
       List bla2 = await futureGetTableaus.getTableaus();
       print('----------------------');
+      print('');
+      print('${bla.data['d']['CustomData']}');
+      print('----------------------');
       print('login Data');
       print('${bla.data['d']['CustomData']['Strings']}');
-      _customData = bla.data['d']['CustomData']['Strings'];
+      _tableauNames = bla.data['d']['CustomData']['Strings'];
+      _customData = bla.data['d']['CustomData'];
       Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => HomePage(tableauNames: _customData,))
+          MaterialPageRoute(builder: (context) => HomePage(tableauNames: _tableauNames, customData: _customData,))
       );
       //print('tableaus response');
       //print(bla2.data);
