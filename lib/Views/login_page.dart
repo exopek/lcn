@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lcn/Providers/dio_provider.dart';
+import 'package:lcn/Providers/state_provider.dart';
 import 'package:lcn/Services/tableau_service.dart';
 //import 'package:http/http.dart';
 import 'package:lcn/Views/home_page.dart';
@@ -76,19 +77,22 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     */
     List _customData = [];
     final logind = ref.read(dioAuthProvider);
+    final customTableauProvider = ref.read(customTableauListProvider.state);
+
 
     Response bla = await logind.login(_usernameController.text, _passwordController.text);
     print(bla.headers.map.values.toList()[1].length);
-    if (bla.statusCode == 200 && bla.headers.map.values.toList()[2].length == 2) {
+    if (bla.statusCode == 200 && bla.headers.map.values.toList()[1].length == 2) {
       final futureGetTableaus = ref.read(dioTableauProvider);
       List bla2 = await futureGetTableaus.getTableaus();
       print('----------------------');
       print('login Data');
       print('${bla.data['d']['CustomData']['Strings']}');
       _customData = bla.data['d']['CustomData']['Strings'];
+      customTableauProvider.update((state) => _customData);
       Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => HomePage(tableauNames: _customData,))
+          MaterialPageRoute(builder: (context) => HomePage())
       );
       //print('tableaus response');
       //print(bla2.data);

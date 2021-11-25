@@ -24,18 +24,6 @@ class _TableauPageState extends State<TableauPage> {
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: [
-          BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              label: 'Tableaus'
-          ),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.build_outlined),
-              label: 'Administration'
-          )
-        ],
-      ),
       backgroundColor: Color.fromRGBO(19, 19, 19, 1.0),
       body: Container(
         height: MediaQuery.of(context).size.height,

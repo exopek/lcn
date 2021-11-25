@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lcn/Providers/dio_provider.dart';
+import 'package:lcn/Providers/state_provider.dart';
 import 'package:lcn/Views/administration_page.dart';
 import 'package:lcn/Views/tableau_page.dart';
 import 'package:lcn/Views/webview_page.dart';
 
 class HomePage extends ConsumerStatefulWidget {
-  const HomePage({Key? key, required this.tableauNames }) : super(key: key);
+  const HomePage({Key? key}) : super(key: key);
 
-  final List tableauNames;
+  //final List tableauNames;
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -20,15 +21,22 @@ class _HomePageState extends ConsumerState<HomePage> {
   void initState() {
     super.initState();
     print('HomePage names');
-    print(widget.tableauNames);
-    print(widget.tableauNames[0]['Value']);
+    //print(widget.tableauNames);
+    //print(widget.tableauNames[0]['Value']);
+
   }
 
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(customTableauListProvider, (previous, next) {
+      setState(() {
+
+      });
+    });
     final futureGetTableaus = ref.watch(futureGetTableausProvider);
-    final futureGetUserCustomData = ref.watch(futureGetUserCostumDataProvider);
+
+    final List customTableaus = ref.read(customTableauListProvider);
     return Scaffold(
       backgroundColor: Color.fromRGBO(19, 19, 19, 1.0),
       bottomNavigationBar: BottomNavigationBar(
@@ -59,9 +67,9 @@ class _HomePageState extends ConsumerState<HomePage> {
             height: MediaQuery.of(context).size.height*0.17,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: widget.tableauNames.length,
+              itemCount: customTableaus.length,
                 itemBuilder: (context, index) {
-                  return _lastTableaus(context, widget.tableauNames[index]['Value']);
+                  return _lastTableaus(context, customTableaus[index]['Value'], {'Strings': customTableaus});
                 }
             )
           ),
@@ -119,7 +127,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           child: ListTile(
             leading: Icon(
                 Icons.home_filled,
-                color: Colors.amberAccent,
+                color: Colors.amber,
             ),
             title: Text(
               name,
@@ -134,12 +142,14 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  Widget _lastTableaus(BuildContext context, String name) {
+  Widget _lastTableaus(BuildContext context, String name, Map customData) {
+    final customTableausProvider = ref.read(customTableauListProvider.state);
+    final setUserCustomData = ref.read(dioAuthProvider);
     return Padding(
       padding: const EdgeInsets.only(top: 30.0, left: 8.0, right: 8.0),
       child: Container(
-        height: MediaQuery.of(context).size.height*0.0,
-        width: MediaQuery.of(context).size.height*0.16,
+        //height: MediaQuery.of(context).size.height*0.0,
+        //width: MediaQuery.of(context).size.height*0.16,
         decoration: BoxDecoration(
           gradient: RadialGradient(
             radius: 2,
@@ -159,6 +169,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             ))
           ),
           onPressed: () {
+            setUserCustomData.getUserCustomData(customData: customData, currentUri: name);
             Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => WebViewPage(title: name.split(RegExp(r"\\")).last, url: 'http://access.lcn.de/LCNGVSDemo/control.aspx?ui=${name.split(RegExp(r"\\")).last}&proj=${name.split(RegExp(r"\\")).first}&loginName=gast&password=lcn'))
@@ -171,15 +182,15 @@ class _HomePageState extends ConsumerState<HomePage> {
               ),
               Icon(
                   Icons.home_filled,
-                color: Colors.amberAccent,
+                color: Colors.amber,
               ),
               Container(
                 child: Center(
                   child: Text(
-                    name,
+                    name.split(RegExp(r"\\")).last,
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 10.0,
+                      fontSize: 12.0,
                     ),
                   ),
                 ),

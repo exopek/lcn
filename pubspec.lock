@@ -297,7 +297,7 @@ packages:
     source: hosted
     version: "2.4.0"
   xml:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: xml
       url: "https://pub.dartlang.org"
