@@ -3,7 +3,9 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:lcn/Views/home_page.dart';
 import 'package:lcn/Views/logout_page.dart';
+import 'package:lcn/Views/makro_page.dart';
 import 'package:lcn/Views/status_page.dart';
+import 'package:lcn/Views/timer_page.dart';
 
 class AdministrationPage extends StatefulWidget {
   const AdministrationPage({Key? key}) : super(key: key);
@@ -22,7 +24,7 @@ class _AdministrationPageState extends State<AdministrationPage> {
   @override
   void initState() {
     super.initState();
-    _serviceList = [StatusPage(), LogoutPage(),LogoutPage(),LogoutPage(),LogoutPage(),LogoutPage()];
+    _serviceList = [StatusPage(), LogoutPage(),LogoutPage(),LogoutPage(),MakroPage(),TimerPage()];
     _serviceName = ['Status', 'Logout', 'InBox', 'Favoriten', 'Makros', 'Zeitschaltuhr'];
     _serviceIcon = [Icon(Icons.info), Icon(Icons.logout), Icon(Icons.inbox), Icon(Icons.star), Icon(Icons.list),Icon(Icons.watch_later)];
   }

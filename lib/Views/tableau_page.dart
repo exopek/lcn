@@ -44,7 +44,7 @@ class _TableauPageState extends State<TableauPage> {
       onPressed: () {
         Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => WebViewPage(title: name, url: 'http://access.lcn.de/LCNGVSDemo/control.aspx?ui=$name&proj=${widget.tableauGroupName}&loginName=gast&password=lcn'))
+            MaterialPageRoute(builder: (context) => WebViewPage(title: name, url: 'http://access.lcn.de/LCNGVSDemo/control.aspx?ui=$name&proj=${widget.tableauGroupName}'))
         );
       },
       child: ListTile(

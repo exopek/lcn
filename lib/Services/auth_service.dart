@@ -18,6 +18,10 @@ class AuthService {
   final String basicUrl = "http://access.lcn.de/LCNGVSDemo/WebServices/Authentification1.asmx";
 
   Future login(String username, String password) async {
+    Options options = Options(
+      headers: {},
+
+    );
     List<Cookie> cookies = [];
     var cookieJar = CookieJar();
     String serviceMethod = "Login";
@@ -25,8 +29,7 @@ class AuthService {
     Response res = await _dio.post(
         basicUrl+'/'+serviceMethod,
         data: {'username': username, 'password': password, 'createPersistentCookie': 'false',},
-        options: Options(headers: {'Content-Type': 'application/json'})
-    );
+        options: options);
     print(res.statusCode);
     print('------------------------------------------');
     print({res.headers.map.values.toList()[1]});
