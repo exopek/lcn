@@ -73,9 +73,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                 }
             )
           ),
-          SafeArea(
+          Expanded(
             child: Container(
-              height: MediaQuery.of(context).size.height*0.7,
               child: futureGetTableaus.when(
                         data: (data) => ListView.builder(
                           //physics: BouncingScrollPhysics()..parent,

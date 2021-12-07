@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lcn/Providers/dio_provider.dart';
+import 'package:lcn/Views/timer_settings_page.dart';
 
 class TimerPage extends ConsumerStatefulWidget {
   const TimerPage({Key? key}) : super(key: key);
@@ -18,46 +19,89 @@ class _TimerPageState extends ConsumerState<TimerPage> {
       appBar: AppBar(
         backgroundColor: Colors.amber,
         title: Text(
-          'Makros',
+          'Auslösezeiten',
           style: TextStyle(
               color: Colors.white
           ),
         ),
       ),
-      body: Container(
-        child: futureGetTimer.when(
-            data: (data) => ListView.builder(
-                itemCount: data.length,
-                itemBuilder: (context, index) {
-                  return _listContent(context, data[index]['Description'], data[index]['Times'][0]['TimeOfInvocationString']);
+      body: Stack(
+        children: [
+          Container(
+            child: futureGetTimer.when(
+                data: (data) => ListView.builder(
+                    itemCount: data.length,
+                    itemBuilder: (context, index) {
+                      return Container();
+                      //return _listContent(context, data[index]['Description'], data[index]['Times'][0]['TimeOfInvocationString'], data[index]['Times']);
+                    }),
+                error: (e, st) => Container(child: Text(e.toString()),),
+                loading: () => CircularProgressIndicator()),
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: FloatingActionButton(
+              backgroundColor: Colors.amber,
+              child: Icon(Icons.add),
+                onPressed: () {
+
                 }),
-            error: (e, st) => Container(child: Text(e.toString()),),
-            loading: () => CircularProgressIndicator()),
+          )
+        ],
       ),
     );
   }
 
 
-  Widget _listContent(BuildContext context, String name, String time) {
-    return TextButton(
-      style: ButtonStyle(
-          overlayColor: MaterialStateProperty.all(Colors.amber)
-      ),
-      onPressed: () {
-      },
-      child: ListTile(
-        title: Text(
-          name,
-          style: TextStyle(
-              color: Colors.white,
-              fontSize: 18.0
+  Widget _listContent(BuildContext context, String name, String time, List times) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4.0, bottom: 4.0, left: 8.0, right: 8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15.0),
+          gradient: RadialGradient(
+            radius: 5,
+            colors: [
+              Colors.black,
+              Colors.grey
+            ],
+
           ),
         ),
-        trailing: Text(
-          time,
-          style: TextStyle(
-              color: Colors.white,
-              fontSize: 18.0
+        child: TextButton(
+          onPressed: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => TimerSettingsPage(name: name, times: times,))
+            );
+          },
+          style: ButtonStyle(
+              overlayColor: MaterialStateProperty.all(Colors.amber),
+              shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15.0)
+              ))
+          ),
+          child: ListTile(
+            leading: Icon(
+              Icons.watch_later_outlined,
+              color: Colors.amber,
+              size: 30.0,
+            ),
+            title: Text(
+              name,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18.0
+              ),
+            ),
+            subtitle: Text(
+              time,
+              style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 12.0
+              ),
+            ),
+
           ),
         ),
       ),
