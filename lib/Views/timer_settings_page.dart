@@ -1,10 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:lcn/Models/models.dart';
 
 class TimerSettingsPage extends StatefulWidget {
-  const TimerSettingsPage({Key? key, required this.times, required this.name}) : super(key: key);
+  const TimerSettingsPage({Key? key, required this.event, required this.name}) : super(key: key);
 
-  final List times;
+  final Event event;
   final String name;
 
   @override
@@ -21,8 +22,8 @@ class _TimerSettingsPageState extends State<TimerSettingsPage> {
     _controllerName = TextEditingController();
     _controllerTime = TextEditingController();
     _controllerName.text = widget.name;
-    _controllerTime.text = widget.times[0]['TimeOfInvocationString'];
-    print(widget.times);
+    _controllerTime.text = widget.event.times[0];
+    //print(widget.times);
     super.initState();
   }
 
@@ -42,14 +43,16 @@ class _TimerSettingsPageState extends State<TimerSettingsPage> {
       body: Container(
         child: Column(
           children: [
-            _timerSettings(context, identifier: 'Name', value: 'name', controller: _controllerName),
-            _timerSettings(context, identifier: 'Zeit', value: 'zeit', controller: _controllerTime),
+            _timerSettings(context, identifier: 'Name', controller: _controllerName),
+            _timerSettings(context, identifier: 'Zeit', controller: _controllerTime),
             _header(context),
             Expanded(
               child: ListView.builder(
-                itemCount: 1,
+                itemCount: widget.event.rules[0].length,
                   itemBuilder: (context, index) {
-                    return _rules(context, 'Wochentage', Icon(Icons.calendar_view_week));
+                  print(widget.event.rules[0]);
+                  //return Container();
+                  return _rules(context, widget.event.rules[0][index].first.value, Icon(Icons.calendar_view_week));
                   }),
             )
 
@@ -91,7 +94,7 @@ class _TimerSettingsPageState extends State<TimerSettingsPage> {
     );
   }
 
-  Widget _timerSettings(BuildContext context, {required String identifier, required String value, required TextEditingController controller}) {
+  Widget _timerSettings(BuildContext context, {required String identifier, required TextEditingController controller}) {
     return ListTile(
       leading: Icon(Icons.edit,color: Colors.amber,),
       title: Text(

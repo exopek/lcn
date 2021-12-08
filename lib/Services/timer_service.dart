@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lcn/Models/models.dart';
 import 'package:lcn/Providers/dio_provider.dart';
 import 'package:xml/xml.dart';
 import 'package:html/parser.dart' as html;
@@ -10,10 +11,13 @@ class TimerService extends StateNotifier<Dio> {
 
   final Ref ref;
   final String basicUrl = "http://access.lcn.de/LCNGVSDemo/WebServices/Timer1.asmx/";
+  late Event event;
+
 
   Future<List> getTimerEvents() async {
-    List<XmlNode> events = [];
-    List eventAttributes = [];
+    List<Event> events = [];
+
+    ///rest
     String serviceMethod = "GetTimerEvents";
     Dio _dio = ref.watch(dioProvider);
     Response res = await _dio.post(
@@ -21,32 +25,49 @@ class TimerService extends StateNotifier<Dio> {
         options: Options(headers: {'Content-Type': 'application/xml', })
     );
 
+    ///XML Parser sortiert alles als Event Model
     final timerDocument = XmlDocument.parse(res.data);
     var children = timerDocument.rootElement.children;
     children.forEach((element) {
       if (element.attributes.isNotEmpty) {
-        events.add(element);
+        List times = [];
+        late String name;
+        late String id;
+        late String enabled;
+        List rules = [];
+        ///id and enabled
+        id = element.attributes[0].value;
+        enabled = element.attributes[1].value;
+        ///name
+        name = element.findAllElements('Description').first.text;
+        print(element.findAllElements('Description').first.text);
+        ///times
+        element.findAllElements('Time').forEach((timeElement) {
+          times.add(timeElement.attributes.first.value);
+          List temp_rules = [];
+          ///rules
+          timeElement.findAllElements('And').forEach((andElement) {
+            temp_rules.add(andElement.findAllElements('Rule').first.attributes);
+          });
+          rules.add(temp_rules);
+        });
+        ///model
+        event = Event(
+            name: name,
+            id: id,
+            enabled: enabled,
+            times: times,
+            rules: rules);
+
+        events.add(event);
+
       }
     }
     );
 
-    print(events);
+    //print(events[0].rules);
 
-    events.forEach((element) {
-      eventAttributes.add(element.attributes);
-    });
-
-    print(eventAttributes);
-    print(children[1].findAllElements('Time').first.attributes);
-    var timeAttributes = children[1].findAllElements('Time').first.attributes;
-    print(children[1].findAllElements('Time').first.children[3].children[1].findAllElements('Rule').first.attributes[0].value);
-    var ruleName = children[1].findAllElements('Time').first.children[3].children[1].findAllElements('Rule').first.attributes[0].value;
-    //Map resMap = res.data;
-
-    //print(resMap['d']['Items']);
-    //return resMap['d']['Items'];
-
-    return [];
+    return events;
   }
 
 

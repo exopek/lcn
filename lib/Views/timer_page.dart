@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lcn/Models/models.dart';
 import 'package:lcn/Providers/dio_provider.dart';
 import 'package:lcn/Views/timer_settings_page.dart';
 
@@ -32,8 +33,8 @@ class _TimerPageState extends ConsumerState<TimerPage> {
                 data: (data) => ListView.builder(
                     itemCount: data.length,
                     itemBuilder: (context, index) {
-                      return Container();
-                      //return _listContent(context, data[index]['Description'], data[index]['Times'][0]['TimeOfInvocationString'], data[index]['Times']);
+                      //return Container();
+                      return _listContent(context, data[index].name, data[index].times[0], data[index]);
                     }),
                 error: (e, st) => Container(child: Text(e.toString()),),
                 loading: () => CircularProgressIndicator()),
@@ -53,7 +54,7 @@ class _TimerPageState extends ConsumerState<TimerPage> {
   }
 
 
-  Widget _listContent(BuildContext context, String name, String time, List times) {
+  Widget _listContent(BuildContext context, String name, String time, Event event) {
     return Padding(
       padding: const EdgeInsets.only(top: 4.0, bottom: 4.0, left: 8.0, right: 8.0),
       child: Container(
@@ -72,7 +73,7 @@ class _TimerPageState extends ConsumerState<TimerPage> {
           onPressed: () {
             Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => TimerSettingsPage(name: name, times: times,))
+                MaterialPageRoute(builder: (context) => TimerSettingsPage(name: name, event: event,))
             );
           },
           style: ButtonStyle(
