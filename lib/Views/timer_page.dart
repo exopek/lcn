@@ -39,6 +39,7 @@ class _TimerPageState extends ConsumerState<TimerPage> {
                 error: (e, st) => Container(child: Text(e.toString()),),
                 loading: () => CircularProgressIndicator()),
           ),
+          /*
           Align(
             alignment: Alignment.centerRight,
             child: FloatingActionButton(
@@ -48,6 +49,7 @@ class _TimerPageState extends ConsumerState<TimerPage> {
 
                 }),
           )
+          */
         ],
       ),
     );

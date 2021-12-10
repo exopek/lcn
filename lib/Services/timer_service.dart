@@ -71,53 +71,22 @@ class TimerService extends StateNotifier<Dio> {
   }
 
 
-  Future<Response> setTimerOptions({required Map customData,required String currentUri, required String eventId, required bool enabled, required String eventName, required String time}) async {
+  Future<Response> setTimerOptions({required Event customData}) async {
     /// liegt nur als SOAP 1.1 und 1.2 ACTION vor AddOrReplaceTimer
-    //String serviceMethod = "SetUserCustomData";
-    //print('${basicUrl+'/'+serviceMethod}');
-    print(customData);
-    print(currentUri);
-    List quickTableauUri = [];
-    List recentTableauUri = [];
-    List lastTableauUri = [];
-    List customDataStrings = customData['Strings'];
+    print('customData------------------');
+    print(customData.toMap());
     late List customUserData;
     List hiveList = [];
-    List Rules = [];
-    //var box = await Hive.openBox('currentUserDataBox');
+    List rules = [];
+    List time = [];
 
-
-
-
-    final body = '''<?xml version="1.0" encoding="utf-8"?>
-    <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-    <soap:Body>
-    <SetUserCustomData xmlns="http://www.lcn.de/LCNGVS/">
-    <customData fetchFromParent="false">
-    <Strings>
-    </Strings>
-    <Integers>
-    </Integers>
-    <Booleans>
-    </Booleans>
-    </customData>
-    </SetUserCustomData>
-    </soap:Body>
-    </soap:Envelope>
-    ''';
 
     final bodyTest = '''<?xml version="1.0" encoding="utf-8"?>
     <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
     <soap:Body>
     <AddOrReplaceTimer xmlns="http://www.lcn.de/LCNGVS/">
-    <Event id=$eventId enabled='$enabled'>
-    <Description>$eventName</Description>
-    <Times>
-    <Time time=$time>
-    <Description>
-    </Description>
-    </Time>
-    </Times>
+    <Event id="${customData.id}" enabled="${customData.enabled}">
+    <Description>${customData.name}</Description>
     <Action>
     </Action>
     </Event>
@@ -126,28 +95,7 @@ class TimerService extends StateNotifier<Dio> {
     </soap:Envelope>
     ''';
 
-
-    XmlNode buildParagraphXML({required String type,required String attribute,required String value}) {
-      final builder = new XmlBuilder();
-      builder.element(type, nest: () {
-        builder.attribute('name', attribute);
-        builder.text(value);
-      });
-      return builder.buildFragment();
-    }
-
-
-    /// Hier mit Schleife über alle Möglichkeiten von Rules
-    XmlNode buildRulesXML({required String type,required String attribute,required String value}) {
-      final builder = new XmlBuilder();
-      builder.element(type, nest: () {
-        builder.attribute('name', attribute);
-        builder.text(value);
-      });
-      return builder.buildFragment();
-    }
-
-
+    /// DayOfWeek Document
     XmlNode buildRulesDayOfWeek({required String type,required String xsiType ,required String attribute_allow, required String attribute_mo, required String attribute_tu,
       required String attribute_we, required String attribute_thu, required String attribute_fr, required String attribute_sa, required String attribute_su,}) {
       final builder = new XmlBuilder();
@@ -164,10 +112,52 @@ class TimerService extends StateNotifier<Dio> {
       });
       return builder.buildFragment();
     }
-    
-    print(buildRulesDayOfWeek(type: 'Rule', xsiType: 'DaysOfWeek', attribute_allow: 'true', attribute_mo: 'true', attribute_tu: 'true', attribute_we: 'true', attribute_thu: 'true', attribute_fr: 'true', attribute_sa: 'true', attribute_su: 'true'));
+
+    rules.add(buildRulesDayOfWeek(type: 'Rule', xsiType: 'DaysOfWeek', attribute_allow: 'true', attribute_mo: 'true', attribute_tu: 'true', attribute_we: 'true', attribute_thu: 'true', attribute_fr: 'true', attribute_sa: 'true', attribute_su: 'false'));
+    //rules.add(buildRulesDayOfWeek(type: 'Rule', xsiType: 'DaysOfWeek', attribute_allow: 'true', attribute_mo: 'true', attribute_tu: 'true', attribute_we: 'true', attribute_thu: 'true', attribute_fr: 'true', attribute_sa: 'true', attribute_su: 'true'));
 
 
+    /// Time Document
+    XmlNode buildTime({required String type, required String time}) {
+      final builder = new XmlBuilder();
+      builder.element(type, nest: () {
+        builder.attribute('time', time);
+      });
+      return builder.buildFragment();
+    }
+    XmlNode xmlTime = buildTime(type: 'Time', time: '14:20:00');
+    rules.forEach((element) {
+      xmlTime.findAllElements('Time').first.children.add(element);
+    });
+
+    //print(xmlTime);
+    //print(buildTime(type: 'String', time: '14:00:00', rules: ruless).nodes);
+    /// List of Time Documents
+    time.add(xmlTime);
+
+
+    /// Times Document
+    XmlNode buildTimes({required String type}) {
+      final builder = new XmlBuilder();
+      builder.element(type, nest: () {
+
+      });
+      return builder.buildFragment();
+    }
+    XmlNode xmlTimes = buildTimes(type: 'Times');
+    time.forEach((element) {
+      xmlTimes.findAllElements('Times').first.children.add(element);
+    });
+    //print(xmlTimes);
+
+
+    /// Event Document
+    final document = XmlDocument.parse(bodyTest);
+    var soap = document.findAllElements('Event');
+    soap.first.children.add(xmlTimes);
+    print(soap);
+    /*
+    ///Cut
     print(customData['Strings']);
     lastTableauUri.add(buildParagraphXML(type: 'String', attribute: 'LastTableauUri', value: currentUri));
     recentTableauUri.add(buildParagraphXML(type: 'String', attribute: 'RecentTableauUri', value: currentUri));
@@ -200,6 +190,7 @@ class TimerService extends StateNotifier<Dio> {
         te.first.children.add(element);
       });
     }
+    */
 
 
     //print('Hive-------------------Hive');
@@ -213,10 +204,10 @@ class TimerService extends StateNotifier<Dio> {
         basicUrl,
         options: Options(
           headers: {'Content-Type': 'text/xml; charset=utf-8',
-            'SOAPAction': "http://www.lcn.de/LCNGVS/SetUserCustomData"
+            'SOAPAction': "http://www.lcn.de/LCNGVS/AddOrReplaceTimer"
           },
         ),
-        data: document1
+        data: document
     );
     //ref.read(customTableauListProvider.state).update((state) => hiveList);
 
@@ -224,6 +215,8 @@ class TimerService extends StateNotifier<Dio> {
     //var document = html.parse(res.data);
     //print(res);
     //print(document.body!.getElementsByTagName('content'));
+    print('-------------------------------res---------------------');
+    print(res.statusMessage);
     return res;
   }
 }

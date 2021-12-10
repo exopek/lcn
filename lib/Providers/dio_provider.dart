@@ -19,6 +19,10 @@ final dioAuthProvider = Provider<AuthService>((ref) {
   return AuthService(ref);
 });
 
+final dioTimerProvider = Provider<TimerService>((ref) {
+  return TimerService(ref);
+});
+
 final futureGetTableausProvider = FutureProvider<List>((ref) {
   return TableauService(ref).getTableaus();
 });
@@ -38,6 +42,7 @@ final futureGetMakroProvider = FutureProvider<List>((ref) {
 final futureGetTimerProvider = FutureProvider<List>((ref) {
   return TimerService(ref).getTimerEvents();
 });
+
 
 /*
 final futureGetUserCostumDataProvider = FutureProvider<Response>((ref) {

@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lcn/Models/models.dart';
+import 'package:lcn/Providers/dio_provider.dart';
 
-class TimerSettingsPage extends StatefulWidget {
+class TimerSettingsPage extends ConsumerStatefulWidget {
   const TimerSettingsPage({Key? key, required this.event, required this.name}) : super(key: key);
 
   final Event event;
@@ -12,23 +14,137 @@ class TimerSettingsPage extends StatefulWidget {
   _TimerSettingsPageState createState() => _TimerSettingsPageState();
 }
 
-class _TimerSettingsPageState extends State<TimerSettingsPage> {
+class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
 
   late TextEditingController _controllerName;
-  late TextEditingController _controllerTime;
+  late TextEditingController _controllerHour;
+  late TextEditingController _controllerMinutes;
+  late TextEditingController _controllerSeconds;
+  late int _timerIndex;
+  late List _eventTimes;
+  late bool _enabled;
+
+  void _showChangeTimeDialog() => showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Container(
+          height: MediaQuery.of(context).size.height*0.3,
+          width: MediaQuery.of(context).size.width*0.7,
+          color: Color.fromRGBO(19, 19, 19, 1.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Container(
+                      height: 20,
+                      width: 70,
+                      child: TextField(
+                        controller: _controllerHour,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.amber
+                        ),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    child: Text(
+                      ':',
+                      style: TextStyle(
+                          color: Colors.amber
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Container(
+                      height: 20,
+                      width: 70,
+                      child: TextField(
+                        controller: _controllerMinutes,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: Colors.amber
+                        ),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    child: Text(
+                        ':',
+                      style: TextStyle(
+                        color: Colors.amber
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Container(
+                      height: 20,
+                      width: 70,
+                      child: TextField(
+                        controller: _controllerSeconds,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: Colors.amber
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+              Container(
+                height: 50,
+                width: 200,
+                child: TextButton(
+                  style: ButtonStyle(
+                    side: MaterialStateProperty.all(BorderSide(
+                      color: Colors.amber
+                    ))
+                  ),
+                    onPressed: () {
+
+                    },
+                    child: Text(
+                      'Speichern',
+                      style: TextStyle(
+                        color: Colors.amber
+                      ),
+                    )),
+              )
+            ],
+          ),
+        ),
+      )
+  );
 
   @override
   void initState() {
     _controllerName = TextEditingController();
-    _controllerTime = TextEditingController();
+    _controllerHour = TextEditingController();
+    _controllerMinutes = TextEditingController();
+    _controllerSeconds = TextEditingController();
     _controllerName.text = widget.name;
-    _controllerTime.text = widget.event.times[0];
+    _timerIndex = 0;
+    _eventTimes = widget.event.times;
+    if (widget.event.enabled == 'true') {
+      _enabled = true;
+    } else {
+      _enabled = false;
+    }
+    //_eventTimes.add('+');
+    //_controllerTime.text = widget.event.times[0];
     //print(widget.times);
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    final futureSettingTimer = ref.read(dioTimerProvider);
+    futureSettingTimer.setTimerOptions(customData: widget.event);
     return Scaffold(
       backgroundColor: Color.fromRGBO(19, 19, 19, 1.0),
       appBar: AppBar(
@@ -40,29 +156,87 @@ class _TimerSettingsPageState extends State<TimerSettingsPage> {
           ),
         ),
       ),
-      body: Container(
-        child: Column(
-          children: [
-            _timerSettings(context, identifier: 'Name', controller: _controllerName),
-            _timerSettings(context, identifier: 'Zeit', controller: _controllerTime),
-            _header(context),
-            Expanded(
-              child: ListView.builder(
-                itemCount: widget.event.rules[0].length,
-                  itemBuilder: (context, index) {
-                  print(widget.event.rules[0]);
-                  //return Container();
-                  return _rules(context, widget.event.rules[0][index].first.value, Icon(Icons.calendar_view_week));
-                  }),
-            )
+      body: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: _timerSettings(context, identifier: 'Name', controller: _controllerName),
+              ),
+              SliverGrid(
+              delegate: SliverChildBuilderDelegate(
 
-          ],
+              (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Container(
+                      height: 50,
+                      width: 50,
+                      decoration: BoxDecoration(
+                          gradient: RadialGradient(
+                            radius: 2,
+                            colors: [
+                              Colors.black,
+                              Colors.grey
+                            ],
+
+                          ),
+                          borderRadius: BorderRadius.circular(15)
+                      ),
+                      child: TextButton(
+                        style: ButtonStyle(
+                            overlayColor: MaterialStateProperty.all(Colors.amber),
+                            shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15.0)
+                            ))
+                        ),
+                        /*
+                                icon: Icon(
+                                  Icons.edit,
+                                  color: Colors.amber,
+                                ),
+                                */
+                        onPressed: () {
+                          setState(() {
+                            _timerIndex = index;
+                          });
+                        },
+
+                        child: Text(
+                          _eventTimes[index],
+                          style: TextStyle(
+                              color: Colors.amber
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+                childCount: _eventTimes.length
+              ),
+
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2
+              )
+              ),
+              SliverToBoxAdapter(child: _header(context, 'Zeit'),),
+              SliverToBoxAdapter(child: _time(context, _eventTimes[_timerIndex], Icon(Icons.watch_later_outlined)),),
+              SliverToBoxAdapter(child: _header(context, 'Bedingungen'),),
+              SliverList(
+                  delegate: SliverChildBuilderDelegate(
+
+                      (context, index) {
+                        return _rules(context, widget.event.rules[_timerIndex][index].first.value, Icon(Icons.calendar_view_week));
+                      },
+                    childCount: widget.event.rules[_timerIndex].length
+                  )
+              ),
+              SliverToBoxAdapter(child: _header(context, 'Zustand'),),
+              SliverToBoxAdapter(child: _switchOnOff(context, 'Status Timer Event', Icon(Icons.watch_later_outlined)),)
+            ]
         ),
-      ),
     );
   }
 
-  Widget _header(BuildContext context) {
+  Widget _header(BuildContext context, String headerText) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Align(
@@ -82,10 +256,13 @@ class _TimerSettingsPageState extends State<TimerSettingsPage> {
           ),
           child: Padding(
             padding: const EdgeInsets.all(10.0),
-            child: Text('Bedingungen',
-              style: TextStyle(
-                color: Colors.amber,
-                fontSize: 18.0
+            child: Center(
+              //padding: const EdgeInsets.all(10.0),
+              child: Text(headerText,
+                style: TextStyle(
+                  color: Colors.amber,
+                  fontSize: 18.0
+                ),
               ),
             ),
           ),
@@ -116,6 +293,130 @@ class _TimerSettingsPageState extends State<TimerSettingsPage> {
       ),
     );
   }
+
+  Widget _timerTimeSettings(BuildContext context, {required String identifier, required String value}) {
+    return ListTile(
+      leading: Icon(Icons.edit,color: Colors.amber,),
+      title: Text(
+        identifier,
+        style: TextStyle(
+            color: Colors.white,
+            fontSize: 18.0
+        ),
+      ),
+      trailing: Container(
+        height: 50,
+        width: 200,
+        child: Center(
+          child: Text(
+            value,
+            style: TextStyle(
+                color: Colors.white,
+              fontSize: 18.0
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _switchOnOff(BuildContext context, String name, Icon icon) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4.0, bottom: 4.0, left: 8.0, right: 8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15.0),
+          gradient: RadialGradient(
+            radius: 5,
+            colors: [
+              Colors.black,
+              Colors.grey
+            ],
+
+          ),
+        ),
+        child: TextButton(
+          onPressed: () {
+            setState(() {
+              if (_enabled == false) {
+                _enabled = true;
+              } else {
+                _enabled = false;
+              }
+
+            });
+          },
+          style: ButtonStyle(
+              overlayColor: MaterialStateProperty.all(Colors.amber),
+              shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15.0)
+              ))
+          ),
+          child: ListTile(
+            leading: Icon(
+              icon.icon,
+              color: Colors.amber,
+              size: 30.0,
+            ),
+            title: Text(
+              name,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18.0
+              ),
+            ),
+            trailing: Icon(Icons.power_settings_new_outlined, color: _enabled ? Colors.greenAccent : Colors.redAccent,),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _time(BuildContext context, String name, Icon icon) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4.0, bottom: 4.0, left: 8.0, right: 8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15.0),
+          gradient: RadialGradient(
+            radius: 5,
+            colors: [
+              Colors.black,
+              Colors.grey
+            ],
+
+          ),
+        ),
+        child: TextButton(
+          onPressed: () {
+            _showChangeTimeDialog();
+          },
+          style: ButtonStyle(
+              overlayColor: MaterialStateProperty.all(Colors.amber),
+              shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15.0)
+              ))
+          ),
+          child: ListTile(
+            leading: Icon(
+              icon.icon,
+              color: Colors.amber,
+              size: 30.0,
+            ),
+            title: Text(
+              name,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18.0
+              ),
+            ),
+            trailing: Icon(Icons.edit, color: Colors.amber,),
+          ),
+        ),
+      ),
+    );
+  }
+
 
   Widget _rules(BuildContext context, String name, Icon icon) {
     return Padding(
@@ -161,7 +462,7 @@ class _TimerSettingsPageState extends State<TimerSettingsPage> {
                   fontSize: 18.0
               ),
             ),
-            trailing: Icon(Icons.workspaces_filled, color: Colors.amber,),
+            trailing: Icon(Icons.edit, color: Colors.amber,),
           ),
         ),
       ),
