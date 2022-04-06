@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lcn/Services/auth_service.dart';
 import 'package:lcn/Services/makro_service.dart';
+import 'package:lcn/Services/monitoring_service.dart';
 import 'package:lcn/Services/status_service.dart';
 import 'package:lcn/Services/tableau_service.dart';
 import 'package:lcn/Services/timer_service.dart';
@@ -43,7 +44,13 @@ final futureGetTimerProvider = FutureProvider<List>((ref) {
   return TimerService(ref).getTimerEvents();
 });
 
+final futureGetMonitoringEventsProvider = FutureProvider<List>((ref) {
+  return MonitoringService(ref).getMonitoringEvents();
+});
 
+final futureGetMonitoringActionsProvider = FutureProvider<Response>((ref) {
+  return MonitoringService(ref).getMonitoringActions();
+});
 /*
 final futureGetUserCostumDataProvider = FutureProvider<Response>((ref) {
   return AuthService(ref).getUserCustomData();

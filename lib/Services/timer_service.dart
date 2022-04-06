@@ -11,13 +11,50 @@ class TimerService extends StateNotifier<Dio> {
 
   final Ref ref;
   final String basicUrl = "http://access.lcn.de/LCNGVSDemo/WebServices/Timer1.asmx/";
+  final String basicUrlSoap = "http://access.lcn.de/LCNGVSDemo/WebServices/Timer1.asmx";
   late Event event;
+  late Rule rule;
+
+  Future<void> setTimerEnabled({required String timerEnabled}) async {
+    String serviceMethod = "SetEnabled";
+    Dio _dio = ref.watch(dioProvider);
+    Response res = await _dio.post(
+      basicUrl+serviceMethod,
+      data: {'enabled': timerEnabled,},
+      options: Options(headers: {'Content-Type': 'application/json', }
+    )
+    );
+  }
+
+  Future<bool> isTimerEnabled() async {
+    String serviceMethod = "IsEnabled";
+    Dio _dio = ref.watch(dioProvider);
+    Response res = await _dio.post(
+        basicUrl+serviceMethod,
+        options: Options(headers: {'Content-Type': 'application/json', }
+        )
+    );
+    return res.data['d'];
+  }
+
+  Future<void> deleteTimer({required String id}) async {
+    String serviceMethod = "DeleteTimer";
+    Dio _dio = ref.watch(dioProvider);
+    Response res = await _dio.post(
+        basicUrl+serviceMethod,
+        data: {'id': id,},
+        options: Options(headers: {'Content-Type': 'application/json', }
+        )
+    );
+    print('--------------Delete Status---------------');
+    print(res.data);
+  }
 
 
   Future<List> getTimerEvents() async {
     List<Event> events = [];
 
-    ///rest
+    /// API GetTimerEvents
     String serviceMethod = "GetTimerEvents";
     Dio _dio = ref.watch(dioProvider);
     Response res = await _dio.post(
@@ -25,6 +62,8 @@ class TimerService extends StateNotifier<Dio> {
         options: Options(headers: {'Content-Type': 'application/xml', })
     );
 
+    print('getTimerEvents');
+    print(res.data);
     ///XML Parser sortiert alles als Event Model
     final timerDocument = XmlDocument.parse(res.data);
     var children = timerDocument.rootElement.children;
@@ -35,6 +74,7 @@ class TimerService extends StateNotifier<Dio> {
         late String id;
         late String enabled;
         List rules = [];
+        Map<String, dynamic> rule = new Map();
         ///id and enabled
         id = element.attributes[0].value;
         enabled = element.attributes[1].value;
@@ -47,6 +87,7 @@ class TimerService extends StateNotifier<Dio> {
           List temp_rules = [];
           ///rules
           timeElement.findAllElements('And').forEach((andElement) {
+            rule['${andElement.findAllElements('Rule').first.attributes.first.value}'] = andElement.findAllElements('Rule').first.attributes;
             temp_rules.add(andElement.findAllElements('Rule').first.attributes);
           });
           rules.add(temp_rules);
@@ -57,7 +98,9 @@ class TimerService extends StateNotifier<Dio> {
             id: id,
             enabled: enabled,
             times: times,
-            rules: rules);
+            rules: rules,
+            rule: rule
+        );
 
         events.add(event);
 
@@ -65,19 +108,16 @@ class TimerService extends StateNotifier<Dio> {
     }
     );
 
-    //print(events[0].rules);
-
     return events;
   }
 
 
-  Future<Response> setTimerOptions({required Event customData}) async {
+  Future<void> setTimerOptions({required Event customData}) async {
     /// liegt nur als SOAP 1.1 und 1.2 ACTION vor AddOrReplaceTimer
     print('customData------------------');
     print(customData.toMap());
     late List customUserData;
-    List hiveList = [];
-    List rules = [];
+    List<XmlNode> rules = [];
     List time = [];
 
 
@@ -87,15 +127,14 @@ class TimerService extends StateNotifier<Dio> {
     <AddOrReplaceTimer xmlns="http://www.lcn.de/LCNGVS/">
     <Event id="${customData.id}" enabled="${customData.enabled}">
     <Description>${customData.name}</Description>
-    <Action>
-    </Action>
     </Event>
     </AddOrReplaceTimer>
     </soap:Body>
     </soap:Envelope>
     ''';
 
-    /// DayOfWeek Document
+
+    /// DayOfWeek Node
     XmlNode buildRulesDayOfWeek({required String type,required String xsiType ,required String attribute_allow, required String attribute_mo, required String attribute_tu,
       required String attribute_we, required String attribute_thu, required String attribute_fr, required String attribute_sa, required String attribute_su,}) {
       final builder = new XmlBuilder();
@@ -113,11 +152,62 @@ class TimerService extends StateNotifier<Dio> {
       return builder.buildFragment();
     }
 
+    /// Year Node
+    XmlNode buildRulesYear({required String type,required String xsiType,required String attribute_allow, required String attribute_year,required String attribute_op}) {
+      final builder = new XmlBuilder();
+      builder.element(type, nest: () {
+
+        builder.attribute('xsi:type', xsiType);
+        builder.attribute('allow', attribute_allow);
+        builder.attribute('yearNo', attribute_year);
+        builder.attribute('operator', attribute_op);
+
+      });
+      return builder.buildFragment();
+    }
+
     rules.add(buildRulesDayOfWeek(type: 'Rule', xsiType: 'DaysOfWeek', attribute_allow: 'true', attribute_mo: 'true', attribute_tu: 'true', attribute_we: 'true', attribute_thu: 'true', attribute_fr: 'true', attribute_sa: 'true', attribute_su: 'false'));
     //rules.add(buildRulesDayOfWeek(type: 'Rule', xsiType: 'DaysOfWeek', attribute_allow: 'true', attribute_mo: 'true', attribute_tu: 'true', attribute_we: 'true', attribute_thu: 'true', attribute_fr: 'true', attribute_sa: 'true', attribute_su: 'true'));
+    rules.add(buildRulesYear(type: 'Rule', xsiType: 'Year', attribute_allow: 'true', attribute_year: '2022', attribute_op: '='));
+    /// And Node
+    XmlNode buildAnd({required String type}) {
+      final builder = new XmlBuilder();
+      builder.element(type, nest: () {
+      });
+      return builder.buildFragment();
+    }
+    XmlNode xmlAnd = buildAnd(type: 'And');
+
+    /// Rule Node
+    XmlNode buildRule({required String type, required String xsiType, required String allowState}) {
+      final builder = new XmlBuilder();
+      builder.element(type, nest: () {
+        builder.attribute('xsi:type', xsiType);
+        builder.attribute('allow', allowState);
+      });
+      return builder.buildFragment();
+    }
+    XmlNode xmlRule = buildRule(type: 'Rule', xsiType: 'AllRule', allowState: 'true');
+    int index = 0;
+    XmlNode userNode = xmlAnd;
+    rules.forEach((element) {
+      userNode.findAllElements('And').elementAt(0).children.add(element);
+      xmlRule.findAllElements('Rule').elementAt(index).children.add(userNode);
+      userNode.findAllElements('And').first.children.removeAt(0);
+      index = index + 1;
+    });
+
+    /// Description Node
+    XmlNode buildDescription({required String type}) {
+      final builder = new XmlBuilder();
+      builder.element(type, nest: () {
+      });
+      return builder.buildFragment();
+    }
+    XmlNode xmlDescription = buildDescription(type: 'Description');
 
 
-    /// Time Document
+    /// Time Node
     XmlNode buildTime({required String type, required String time}) {
       final builder = new XmlBuilder();
       builder.element(type, nest: () {
@@ -125,18 +215,16 @@ class TimerService extends StateNotifier<Dio> {
       });
       return builder.buildFragment();
     }
-    XmlNode xmlTime = buildTime(type: 'Time', time: '14:20:00');
-    rules.forEach((element) {
-      xmlTime.findAllElements('Time').first.children.add(element);
-    });
+    XmlNode xmlTime = buildTime(type: 'Time', time: '14:45:00');
+    xmlTime.findAllElements('Time').first.children.add(xmlDescription);
+    xmlTime.findAllElements('Time').first.children.add(xmlRule);
 
-    //print(xmlTime);
-    //print(buildTime(type: 'String', time: '14:00:00', rules: ruless).nodes);
+
     /// List of Time Documents
     time.add(xmlTime);
 
 
-    /// Times Document
+    /// Times Node
     XmlNode buildTimes({required String type}) {
       final builder = new XmlBuilder();
       builder.element(type, nest: () {
@@ -148,75 +236,46 @@ class TimerService extends StateNotifier<Dio> {
     time.forEach((element) {
       xmlTimes.findAllElements('Times').first.children.add(element);
     });
-    //print(xmlTimes);
 
+    /// Description Node
+    XmlNode buildAction({required String type}) {
+      final builder = new XmlBuilder();
+      builder.element(type, nest: () {
+      });
+      return builder.buildFragment();
+    }
+    XmlNode xmlAction = buildDescription(type: 'Action');
 
-    /// Event Document
+    /// Event Node
     final document = XmlDocument.parse(bodyTest);
     var soap = document.findAllElements('Event');
     soap.first.children.add(xmlTimes);
-    print(soap);
-    /*
-    ///Cut
-    print(customData['Strings']);
-    lastTableauUri.add(buildParagraphXML(type: 'String', attribute: 'LastTableauUri', value: currentUri));
-    recentTableauUri.add(buildParagraphXML(type: 'String', attribute: 'RecentTableauUri', value: currentUri));
-    hiveList.add({'Name': 'RecentTableauUri', 'Value': currentUri});
+    soap.first.children.add(xmlAction);
 
+    /// Request
 
-    customDataStrings.forEach((element) {
-      if (element['Name'] == 'RecentTableauUri' && element['Value'] != currentUri) {
-        recentTableauUri.add(buildParagraphXML(type: 'String', attribute: 'RecentTableauUri', value: element['Value']));
-        hiveList.add(element);
-      }
-    });
-    hiveList.add({'Name': 'LastTableauUri', 'Value': currentUri});
-    print(recentTableauUri);
-    //box.put('currentUserData', hiveList);
-    customUserData = recentTableauUri + lastTableauUri;
-
-
-
-
-    //var value = RegExp(r"Musterhaus\Schnelltableau");
-    //var jhf = buildParagraphXML(type: 'String', attribute: 'LastTableauUri', value: value.pattern);
-    //print(jhf);
-    //print(jhf.nodeType);
-    final document1 = XmlDocument.parse(bodyTest);
-    //document1.children.add(jhf);
-    var te = document1.findAllElements('Time');
-    if (te.first.getAttribute('time') == time) {
-      customUserData.forEach((element) {
-        te.first.children.add(element);
-      });
-    }
-    */
-
-
-    //print('Hive-------------------Hive');
-    //print(box.get('currentUserData'));
-
-    //print('doc----------------doc');
-    //print(document1);
     Dio _dio = ref.watch(dioProvider);
+    late Response res;
+    try {
+      res = await _dio.post(
+          basicUrlSoap,
+          options: Options(
+            headers: {'Content-Type': 'text/xml',
+              'SOAPAction': "http://www.lcn.de/LCNGVS/AddOrReplaceTimer"
+            },
+          ),
+          data: soap.first.parent!.parent!.parent!.parent
+      );
+      print(res.statusCode);
+    } catch(e) {
+      print(e);
+    }
 
-    Response res = await _dio.post(
-        basicUrl,
-        options: Options(
-          headers: {'Content-Type': 'text/xml; charset=utf-8',
-            'SOAPAction': "http://www.lcn.de/LCNGVS/AddOrReplaceTimer"
-          },
-        ),
-        data: document
-    );
-    //ref.read(customTableauListProvider.state).update((state) => hiveList);
 
-    //print('-----------------------usersdata');
-    //var document = html.parse(res.data);
-    //print(res);
-    //print(document.body!.getElementsByTagName('content'));
+
+    ///
     print('-------------------------------res---------------------');
-    print(res.statusMessage);
-    return res;
+    //print(res.data);
+    //return res;
   }
 }

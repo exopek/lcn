@@ -1,11 +1,12 @@
 class Event {
-  Event({required this.name, required this.id, required this.enabled, required this.times, required this.rules});
+  Event({required this.name, required this.id, required this.enabled, required this.times, required this.rules, required this.rule});
 
   final String name;
   final String id;
   final String enabled;
   final List times;
   final List rules;
+  final Map rule;
 
   factory Event.fromMap(Map<String, dynamic> data) {
 
@@ -14,13 +15,15 @@ class Event {
     final String enabled = data['enabled'];
     final List times = data['times'];
     final List rules = data['rules'];
+    final Map rule = data['rule'];
 
     return Event(
         name: name,
         id: id,
         enabled: enabled,
         times: times,
-        rules: rules
+        rules: rules,
+        rule: rule
     );
   }
 
@@ -30,7 +33,30 @@ class Event {
       'id': id,
       'enabled': enabled,
       'times': times,
-      'rules': rules
+      'rules': rules,
+      'rule': rule
+    };
+  }
+
+}
+
+class Rule {
+  Rule({required this.rule});
+
+  final Map<String, dynamic> rule;
+
+  factory Rule.fromMap(Map<String, dynamic> data) {
+
+    final Map<String, dynamic> rule = data['rule'];
+
+    return Rule(
+      rule: rule,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'rule': rule,
     };
   }
 

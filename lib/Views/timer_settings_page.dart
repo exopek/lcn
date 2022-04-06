@@ -5,10 +5,11 @@ import 'package:lcn/Models/models.dart';
 import 'package:lcn/Providers/dio_provider.dart';
 
 class TimerSettingsPage extends ConsumerStatefulWidget {
-  const TimerSettingsPage({Key? key, required this.event, required this.name}) : super(key: key);
+  const TimerSettingsPage({Key? key, required this.event, required this.name, required this.id}) : super(key: key);
 
   final Event event;
   final String name;
+  final String id;
 
   @override
   _TimerSettingsPageState createState() => _TimerSettingsPageState();
@@ -121,6 +122,69 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
       )
   );
 
+
+  ///
+  void _showChangeRulesDialog({required String rule}) => showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Container(
+          height: MediaQuery.of(context).size.height*0.3,
+          width: MediaQuery.of(context).size.width*0.7,
+          color: Color.fromRGBO(19, 19, 19, 1.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Center(
+                child: Text(
+                  rule,
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+              Builder(
+                  builder: (context) {
+                    if (rule == 'DaysOfWeek') {
+                      return Container(
+                          height: 100,
+                          child: _daysOfWeek(context));
+                    } else if (rule == 'Year') {
+                      return Container(
+                        height: 100,
+                        child: Container(color: Colors.green,),
+                      );
+                    } else {
+                      return Container(
+                        height: 100,
+                      );
+                    }
+
+                  }
+              ),
+              Container(
+                height: 50,
+                width: 200,
+                child: TextButton(
+                    style: ButtonStyle(
+                        side: MaterialStateProperty.all(BorderSide(
+                            color: Colors.amber
+                        ))
+                    ),
+                    onPressed: () {
+
+                    },
+                    child: Text(
+                      'Speichern',
+                      style: TextStyle(
+                          color: Colors.amber
+                      ),
+                    )),
+              )
+            ],
+          ),
+        ),
+      )
+  );
+  ///
+
   @override
   void initState() {
     _controllerName = TextEditingController();
@@ -144,7 +208,7 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
   @override
   Widget build(BuildContext context) {
     final futureSettingTimer = ref.read(dioTimerProvider);
-    futureSettingTimer.setTimerOptions(customData: widget.event);
+    //futureSettingTimer.setTimerOptions(customData: widget.event);
     return Scaffold(
       backgroundColor: Color.fromRGBO(19, 19, 19, 1.0),
       appBar: AppBar(
@@ -230,7 +294,7 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
                   )
               ),
               SliverToBoxAdapter(child: _header(context, 'Zustand'),),
-              SliverToBoxAdapter(child: _switchOnOff(context, 'Status Timer Event', Icon(Icons.watch_later_outlined)),)
+              SliverToBoxAdapter(child: _switchOnOff(context, 'Status Timer Event', Icon(Icons.watch_later_outlined), widget.id),)
             ]
         ),
     );
@@ -320,7 +384,9 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
     );
   }
 
-  Widget _switchOnOff(BuildContext context, String name, Icon icon) {
+  Widget _switchOnOff(BuildContext context, String name, Icon icon, String id) {
+    final futureDeleteTimer = ref.read(dioTimerProvider);
+    final futureSettingTimer = ref.read(dioTimerProvider);
     return Padding(
       padding: const EdgeInsets.only(top: 4.0, bottom: 4.0, left: 8.0, right: 8.0),
       child: Container(
@@ -340,8 +406,14 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
             setState(() {
               if (_enabled == false) {
                 _enabled = true;
+                futureSettingTimer.setTimerOptions(customData: widget.event);
+                //futureDeleteTimer.deleteTimer(id: id);
+                //futureSettingTimer.setTimerEnabled(timerEnabled: 'true');
               } else {
                 _enabled = false;
+                futureSettingTimer.setTimerOptions(customData: widget.event);
+                //futureDeleteTimer.deleteTimer(id: id);
+                //futureSettingTimer.setTimerEnabled(timerEnabled: 'false');
               }
 
             });
@@ -365,7 +437,7 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
                   fontSize: 18.0
               ),
             ),
-            trailing: Icon(Icons.power_settings_new_outlined, color: _enabled ? Colors.greenAccent : Colors.redAccent,),
+            trailing: Icon(Icons.power_settings_new_outlined, color: true ? Colors.greenAccent : Colors.redAccent,),
           ),
         ),
       ),
@@ -435,6 +507,7 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
         ),
         child: TextButton(
           onPressed: () {
+            _showChangeRulesDialog(rule: name);
             /*
             Navigator.push(
                 context,
@@ -465,6 +538,40 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
             trailing: Icon(Icons.edit, color: Colors.amber,),
           ),
         ),
+      ),
+    );
+  }
+
+  /// Rules Widgets
+  /// DaysOfWeek
+  Widget _daysOfWeek(BuildContext context) {
+    List _weekDays = [];
+    return SizedBox(
+      child: ListView.builder(
+          itemBuilder: (context, index) {
+            return TextButton(
+              onPressed: () {
+                print(widget.event.rules);
+              },
+              style: ButtonStyle(
+                  overlayColor: MaterialStateProperty.all(Colors.amber),
+                  shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15.0)
+                  ))
+              ),
+              child: ListTile(
+                title: Text(
+                  _weekDays[index],
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16.0
+                  ),
+                ),
+                trailing: Icon(Icons.check_circle, color: Colors.greenAccent),
+              ),
+            );
+          },
+          itemCount: 7,
       ),
     );
   }

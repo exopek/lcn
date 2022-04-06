@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:lcn/Views/ereignismelder_page.dart';
 import 'package:lcn/Views/home_page.dart';
 import 'package:lcn/Views/logout_page.dart';
 import 'package:lcn/Views/makro_page.dart';
@@ -24,7 +25,7 @@ class _AdministrationPageState extends State<AdministrationPage> {
   @override
   void initState() {
     super.initState();
-    _serviceList = [StatusPage(), LogoutPage(),LogoutPage(),LogoutPage(),MakroPage(),TimerPage()];
+    _serviceList = [StatusPage(), LogoutPage(),EreignismelderPage(),LogoutPage(),MakroPage(),TimerPage()];
     _serviceName = ['Status', 'Logout', 'InBox', 'Favoriten', 'Makros', 'Zeitschaltuhr'];
     _serviceIcon = [Icon(Icons.info), Icon(Icons.logout), Icon(Icons.inbox), Icon(Icons.star), Icon(Icons.list),Icon(Icons.watch_later)];
   }
