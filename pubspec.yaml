@@ -43,6 +43,7 @@ dependencies:
   flutter_riverpod: ^1.0.0
   webview_flutter: ^2.3.1
   xml: ^5.3.1
+  expansion_tile_card: ^2.0.0
 
 dev_dependencies:
   flutter_test:

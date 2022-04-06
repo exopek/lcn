@@ -24,6 +24,7 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
   late int _timerIndex;
   late List _eventTimes;
   late bool _enabled;
+  late List<Map> _weekDays;
 
   void _showChangeTimeDialog() => showDialog(
       context: context,
@@ -185,8 +186,25 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
   );
   ///
 
+
+  late bool check;
+
   @override
   void initState() {
+
+    _weekDays = [
+      {"name": "Mo", "isChecked": false},
+      {"name": "Di", "isChecked": false},
+      {"name": "Mi", "isChecked": false,},
+      {"name": "Do", "isChecked": false},
+      {"name": "Fr", "isChecked": false},
+      {"name": "Sa", "isChecked": false},
+      {"name": "So", "isChecked": false},
+    ];
+
+
+
+    check = false;
     _controllerName = TextEditingController();
     _controllerHour = TextEditingController();
     _controllerMinutes = TextEditingController();
@@ -505,7 +523,7 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
 
           ),
         ),
-        child: TextButton(
+        child:/* TextButton(
           onPressed: () {
             _showChangeRulesDialog(rule: name);
             /*
@@ -522,12 +540,15 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
                   borderRadius: BorderRadius.circular(15.0)
               ))
           ),
-          child: ListTile(
+          child:*/ ExpansionTile(
+            /*
             leading: Icon(
               icon.icon,
               color: Colors.amber,
               size: 30.0,
             ),
+
+             */
             title: Text(
               name,
               style: const TextStyle(
@@ -535,10 +556,55 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
                   fontSize: 18.0
               ),
             ),
-            trailing: Icon(Icons.edit, color: Colors.amber,),
+            children: [
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+
+                  _checkBox(context, _weekDays[0]['name'], _weekDays[0]['isChecked'], 0),
+                  _checkBox(context, _weekDays[1]['name'], _weekDays[1]['isChecked'], 1),
+                  _checkBox(context, _weekDays[2]['name'], _weekDays[2]['isChecked'], 2),
+                  _checkBox(context, _weekDays[3]['name'], _weekDays[3]['isChecked'], 3),
+                  _checkBox(context, _weekDays[4]['name'], _weekDays[4]['isChecked'], 4),
+                  _checkBox(context, _weekDays[5]['name'], _weekDays[5]['isChecked'], 5),
+                  _checkBox(context, _weekDays[6]['name'], _weekDays[6]['isChecked'], 6),
+
+                ]
+
+
+
+              )
+            ],
+            //trailing: Icon(Icons.edit, color: Colors.amber,),
+          ),
+       // ),
+      ),
+    );
+  }
+
+  Widget _checkBox(BuildContext context, String weekDay, bool state, int day) {
+    return Column(
+      children: [
+        Text(weekDay,
+          style: TextStyle(
+            color: Colors.white
           ),
         ),
-      ),
+        Checkbox(
+            value: state,
+            key: Key(weekDay),
+            side: BorderSide(color: Colors.orangeAccent),
+            activeColor: Colors.transparent,
+            checkColor: Colors.greenAccent,
+            onChanged: (value) {
+              setState(() {
+                _weekDays[day]['isChecked'] = !state;
+
+              });
+            }
+        )
+      ],
     );
   }
 
