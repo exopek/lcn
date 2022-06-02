@@ -84,7 +84,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         },
                           itemCount: data.length,
               ),
-              error: (e, st) => Container(child: Text(e.toString()),),
+              error: (e, st) => Container(child: Text(e.toString(), style: TextStyle(color: Colors.white),),),
               loading: () => CircularProgressIndicator()
             )
             ),

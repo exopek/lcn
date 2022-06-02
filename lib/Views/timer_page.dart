@@ -14,7 +14,8 @@ class TimerPage extends ConsumerStatefulWidget {
 class _TimerPageState extends ConsumerState<TimerPage> {
   @override
   Widget build(BuildContext context) {
-    final futureGetTimer = ref.watch(futureGetTimerProvider);
+    //final futureGetTimer = ref.watch(futureGetTimerProvider);
+    final futureSettingTimer = ref.read(dioTimerProvider);
     return Scaffold(
       backgroundColor: Color.fromRGBO(19, 19, 19, 1.0),
       appBar: AppBar(
@@ -28,20 +29,41 @@ class _TimerPageState extends ConsumerState<TimerPage> {
       ),
       body: Stack(
         children: [
+          //_listContent(context, data[index].name, data[index].times[0], data[index], data[index].id);
+        Container(
+          child: FutureBuilder<List<Event>> (
+            future: futureSettingTimer.getTimerEvents(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return ListView.builder(
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (context, index) {
+                      return _listContent(context, snapshot.data![index].name, snapshot.data![index].times[0], snapshot.data![index], snapshot.data![index].id);
+                  }
+                );
+              } else if (snapshot.hasError) {
+                return Container(child: Text(snapshot.error.toString()),);
+              } else {
+                return Center(
+                    child: CircularProgressIndicator()
+                );
+              }
 
+            },
+          ),
+        ),
+        /*
           Container(
             child: futureGetTimer.when(
                 data: (data) => ListView.builder(
                     itemCount: data.length,
                     itemBuilder: (context, index) {
-                      //return Container();
-                      print('---------------------ID der Timer------------------------');
-                      print('Timer $index: ${data[index].id}');
                       return _listContent(context, data[index].name, data[index].times[0], data[index], data[index].id);
                     }),
                 error: (e, st) => Container(child: Text(e.toString()),),
                 loading: () => CircularProgressIndicator()),
           ),
+        */
           Align(
             alignment: Alignment.bottomCenter,
             child: _switchOnOff(context, 'Status Timer', Icon(Icons.watch_later_outlined)),
@@ -81,6 +103,8 @@ class _TimerPageState extends ConsumerState<TimerPage> {
 
           ),
         ),
+        /// Status ändert sich sich hier nur mit dem Neuladen der Seite
+        /// Eine Möglichkeit ist hier vielleicht dauerhaft zu pollen oder websockets
         child: FutureBuilder<bool>(
           future: futureSettingTimer.isTimerEnabled(),
           builder: (context, snapshot) {
@@ -120,7 +144,7 @@ class _TimerPageState extends ConsumerState<TimerPage> {
                 ),
               );
             } else {
-              return Container(color: Colors.greenAccent,);
+              return Container();
             }
           }
         ),
@@ -148,11 +172,12 @@ class _TimerPageState extends ConsumerState<TimerPage> {
           onPressed: () {
             Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => TimerSettingsPage(name: name, event: event,id: id,))
+                MaterialPageRoute(builder: (context) => TimerSettingsPage(name: name, event: event, id: id)
+                )
             );
           },
           style: ButtonStyle(
-              overlayColor: MaterialStateProperty.all(Colors.amber),
+              overlayColor: MaterialStateProperty.all(Colors.amber.withOpacity(0.1)),
               shape: MaterialStateProperty.all(RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15.0)
               ))

@@ -81,10 +81,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
 
     Response bla = await logind.login(_usernameController.text, _passwordController.text);
-    print(bla.headers.map.values.toList()[1].length);
-    if (bla.statusCode == 200 && bla.headers.map.values.toList()[1].length == 2) {
+    //print(bla.headers.map.values.toList()[1].length);
+    print(bla.headers.map.values);
+    print(bla.data['d']);
+    if (bla.statusCode == 200 && bla.data['d']['IsSuccess'] == true) { /// bla.headers.map.values.toList()[1].length == 2
       final futureGetTableaus = ref.read(dioTableauProvider);
-      List bla2 = await futureGetTableaus.getTableaus();
+      //List bla2 = await futureGetTableaus.getTableaus();
       print('----------------------');
       print('login Data');
       print('${bla.data['d']['CustomData']['Strings']}');
@@ -182,41 +184,45 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       body: CustomScrollView(
         slivers: <Widget>[
           SliverToBoxAdapter(
-            child: Container(
-              height: MediaQuery.of(context).size.height*0.2,
-            ),
-          ),
-          SliverPadding(
-            padding: EdgeInsets.all(20.0),
-            sliver: SliverToBoxAdapter(
-                child: Container(
-                  decoration: BoxDecoration(
-                      border: Border.all(
-                          color: Colors.white
-                      )
-                  ),
-                  height: MediaQuery.of(context).size.height*0.2,
-                  width: MediaQuery.of(context).size.width*0.7,
-                  child: Column(
-                    children: [
-                      _loginFields(context, _usernameController, 'Benutzername'),
-                      _loginFields(context, _passwordController, 'Passwort')
-                    ],
+            child: Stack(
+              children: [
+                Container(
+                  height: MediaQuery.of(context).size.height,
+                  width: MediaQuery.of(context).size.width,
+                  child: Image(
+                    image: AssetImage(
+                      'assets/login.jpg',
+                    ),
+                    fit: BoxFit.cover,
                   ),
                 ),
+                Padding(
+                  padding: EdgeInsets.only(top: 220.0),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Container(
+                          height: MediaQuery.of(context).size.height*0.2,
+                          width: MediaQuery.of(context).size.width*0.7,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              _loginFields(context, _usernameController, 'Benutzername'),
+                              _loginFields(context, _passwordController, 'Passwort')
+                            ],
+                          ),
+                        ),
+                        _loginButton(context)
+                      ],
+                    ),
+                  ),
+                )
+
+              ],
             ),
           ),
-          SliverToBoxAdapter(
-            child: Container(
-              height: MediaQuery.of(context).size.height*0.05,
-            ),
-          ),
-          SliverPadding(
-            padding: EdgeInsets.all(20.0),
-            sliver: SliverToBoxAdapter(
-              child:  _loginButton(context)
-            ),
-          )
+
+
         ],
 
       ),
@@ -226,47 +232,58 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
 
   Widget _loginFields(BuildContext context, TextEditingController controller, String fieldIdentifier) {
-    return Row(
-      children: [
-        Container(
-          width: 100.0,
-          child: Text(
-            fieldIdentifier,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12.0
-            ),
-          ),
-        ),
-        Container(
-          width: 150.0,
-          child: TextField(
-            style: const TextStyle(
+    return Container(
+      height: MediaQuery.of(context).size.height/14.0,
+      width: MediaQuery.of(context).size.width/1.4,
+      decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.5),
+          borderRadius: BorderRadius.all(Radius.circular(40.0)),
+          border: Border.all(
               color: Colors.white
+          )
+      ),
+      child: Padding(
+        padding: const EdgeInsets.only(left: 8.0),
+        child: Center(
+          child: TextField(
+            textAlign: TextAlign.center,
+            decoration: InputDecoration(
+                hintText: fieldIdentifier,
+                hintStyle: TextStyle(
+                  color: Colors.black54,
+                  fontFamily: 'FiraSansExtraCondensed',
+                ),
+                border: InputBorder.none
+            ),
+            style: TextStyle(
+                color: Colors.black
             ),
             controller: controller,
-          )
-        )
-      ],
+          ),
+        ),
+      ),
     );
   }
 
   Widget _loginButton(BuildContext context) {
     return Container(
-      height: 80.0,
+      height: 50.0,
       width: MediaQuery.of(context).size.width*0.6,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.all(Radius.circular(15.0))
+          color: Colors.orangeAccent.withOpacity(0.5),
+          borderRadius: BorderRadius.all(Radius.circular(40.0)),
+          border: Border.all(
+              color: Colors.orange
+          )
       ),
       child: TextButton(
         onPressed: () {_getAuthStatus();},
         style: ButtonStyle(
           overlayColor: MaterialStateProperty.all(
-            Colors.grey
+            Colors.white.withOpacity(0.1)
           ),
             shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15.0)
+                borderRadius: BorderRadius.circular(40.0)
             ))
         ),
         child: const Center(

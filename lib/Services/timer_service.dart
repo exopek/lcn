@@ -18,7 +18,7 @@ class TimerService extends StateNotifier<Dio> {
   Future<void> setTimerEnabled({required String timerEnabled}) async {
     String serviceMethod = "SetEnabled";
     Dio _dio = ref.watch(dioProvider);
-    Response res = await _dio.post(
+    await _dio.post(
       basicUrl+serviceMethod,
       data: {'enabled': timerEnabled,},
       options: Options(headers: {'Content-Type': 'application/json', }
@@ -51,7 +51,7 @@ class TimerService extends StateNotifier<Dio> {
   }
 
 
-  Future<List> getTimerEvents() async {
+  Future<List<Event>> getTimerEvents() async {
     List<Event> events = [];
 
     /// API GetTimerEvents
@@ -166,9 +166,24 @@ class TimerService extends StateNotifier<Dio> {
       return builder.buildFragment();
     }
 
-    rules.add(buildRulesDayOfWeek(type: 'Rule', xsiType: 'DaysOfWeek', attribute_allow: 'true', attribute_mo: 'true', attribute_tu: 'true', attribute_we: 'true', attribute_thu: 'true', attribute_fr: 'true', attribute_sa: 'true', attribute_su: 'false'));
+    rules.add(buildRulesDayOfWeek(
+        type: 'Rule',
+        xsiType: 'DaysOfWeek',
+        attribute_allow: 'true',
+        attribute_mo: customData.rule['DaysOfWeek'][2].value,
+        attribute_tu: customData.rule['DaysOfWeek'][3].value,
+        attribute_we: customData.rule['DaysOfWeek'][4].value,
+        attribute_thu: customData.rule['DaysOfWeek'][5].value,
+        attribute_fr: customData.rule['DaysOfWeek'][6].value,
+        attribute_sa: customData.rule['DaysOfWeek'][7].value,
+        attribute_su: customData.rule['DaysOfWeek'][8].value));
     //rules.add(buildRulesDayOfWeek(type: 'Rule', xsiType: 'DaysOfWeek', attribute_allow: 'true', attribute_mo: 'true', attribute_tu: 'true', attribute_we: 'true', attribute_thu: 'true', attribute_fr: 'true', attribute_sa: 'true', attribute_su: 'true'));
-    rules.add(buildRulesYear(type: 'Rule', xsiType: 'Year', attribute_allow: 'true', attribute_year: '2022', attribute_op: '='));
+    rules.add(buildRulesYear(
+        type: 'Rule',
+        xsiType: 'Year',
+        attribute_allow: 'true',
+        attribute_year: customData.rule['Year'][2].value,
+        attribute_op: customData.rule['Year'][3].value));
     /// And Node
     XmlNode buildAnd({required String type}) {
       final builder = new XmlBuilder();
@@ -215,7 +230,7 @@ class TimerService extends StateNotifier<Dio> {
       });
       return builder.buildFragment();
     }
-    XmlNode xmlTime = buildTime(type: 'Time', time: '14:45:00');
+    XmlNode xmlTime = buildTime(type: 'Time', time: '14:50:00');
     xmlTime.findAllElements('Time').first.children.add(xmlDescription);
     xmlTime.findAllElements('Time').first.children.add(xmlRule);
 
@@ -251,7 +266,8 @@ class TimerService extends StateNotifier<Dio> {
     var soap = document.findAllElements('Event');
     soap.first.children.add(xmlTimes);
     soap.first.children.add(xmlAction);
-
+    print('[SOAP VALUE]');
+    print(soap.first.parent!.parent!.parent!.parent);
     /// Request
 
     Dio _dio = ref.watch(dioProvider);
@@ -275,7 +291,7 @@ class TimerService extends StateNotifier<Dio> {
 
     ///
     print('-------------------------------res---------------------');
-    //print(res.data);
+    print(res.data);
     //return res;
   }
 }

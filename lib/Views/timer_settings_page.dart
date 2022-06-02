@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lcn/Models/models.dart';
 import 'package:lcn/Providers/dio_provider.dart';
+import 'package:xml/xml.dart';
 
 class TimerSettingsPage extends ConsumerStatefulWidget {
   const TimerSettingsPage({Key? key, required this.event, required this.name, required this.id}) : super(key: key);
@@ -25,6 +26,9 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
   late List _eventTimes;
   late bool _enabled;
   late List<Map> _weekDays;
+  late List<bool> _yearOperatorStates;
+  late bool check;
+  List<String> _operatorsDummys = ['=', '!=', '<=', '>=', '<', '>'];
 
   void _showChangeTimeDialog() => showDialog(
       context: context,
@@ -124,85 +128,77 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
   );
 
 
-  ///
-  void _showChangeRulesDialog({required String rule}) => showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        child: Container(
-          height: MediaQuery.of(context).size.height*0.3,
-          width: MediaQuery.of(context).size.width*0.7,
-          color: Color.fromRGBO(19, 19, 19, 1.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Center(
-                child: Text(
-                  rule,
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-              Builder(
-                  builder: (context) {
-                    if (rule == 'DaysOfWeek') {
-                      return Container(
-                          height: 100,
-                          child: _daysOfWeek(context));
-                    } else if (rule == 'Year') {
-                      return Container(
-                        height: 100,
-                        child: Container(color: Colors.green,),
-                      );
-                    } else {
-                      return Container(
-                        height: 100,
-                      );
-                    }
+  void _changeDaysOfWeek(List<XmlAttribute> daysOfWeek, bool state, int day) {
+    List<XmlAttribute> _changedList = daysOfWeek;
+    XmlAttribute _weekDay = _changedList[day+2];
+    _weekDay.value = state.toString();
+  }
 
-                  }
-              ),
-              Container(
-                height: 50,
-                width: 200,
-                child: TextButton(
-                    style: ButtonStyle(
-                        side: MaterialStateProperty.all(BorderSide(
-                            color: Colors.amber
-                        ))
-                    ),
-                    onPressed: () {
+  List<XmlAttribute> _sortDaysOfWeek(List<XmlAttribute> daysOfWeek) {
+    /// Notiz daysOfWeek einmal mit .toList kopieren damit das Model nicht verändert wird
+    List<XmlAttribute> _sortedList = daysOfWeek.toList();
+    _sortedList.removeAt(0);
+    _sortedList.removeAt(0);
+    return _sortedList;
+  }
 
-                    },
-                    child: Text(
-                      'Speichern',
-                      style: TextStyle(
-                          color: Colors.amber
-                      ),
-                    )),
-              )
-            ],
-          ),
-        ),
-      )
-  );
-  ///
+  List<bool> _operatorSelection(XmlAttribute attribute) {
+    List<String> _operators = ['=', '!=', '<=', '>=', '<', '>'];
+    List<bool> _selection = [];
+    _operators.forEach((element) {
+      if (element == attribute.value) {
+        _selection.add(true);
+      } else {
+        _selection.add(false);
+      }
+    });
+    return _selection;
+  }
 
+  void _changeOperator(int index, XmlAttribute attribute) {
+    List<String> _operators = ['=', '!=', '<=', '>=', '<', '>'];
+    attribute.value = _operators[index];
+  }
 
-  late bool check;
+  void _countUpYear(XmlAttribute attribute) {
+    int value = int.parse(attribute.value);
+    value = value + 1;
+    attribute.value = value.toString();
+  }
+
+  void _countDownYear(XmlAttribute attribute) {
+    int value = int.parse(attribute.value);
+    value = value - 1;
+    attribute.value = value.toString();
+  }
 
   @override
   void initState() {
 
+    List<bool> _daysOfWeekStatus = [];
+    _sortDaysOfWeek(widget.event.rule['DaysOfWeek']).forEach((element) {
+      if (element.value == "true") {
+        _daysOfWeekStatus.add(true);
+      } else {
+        _daysOfWeekStatus.add(false);
+      }
+
+    });
+
+
+    //List _daysOfWeekStatus = [false, false, false, false, false, false, false,];
     _weekDays = [
-      {"name": "Mo", "isChecked": false},
-      {"name": "Di", "isChecked": false},
-      {"name": "Mi", "isChecked": false,},
-      {"name": "Do", "isChecked": false},
-      {"name": "Fr", "isChecked": false},
-      {"name": "Sa", "isChecked": false},
-      {"name": "So", "isChecked": false},
+      {"name": "Mo", "isChecked": _daysOfWeekStatus[0]},
+      {"name": "Di", "isChecked": _daysOfWeekStatus[1]},
+      {"name": "Mi", "isChecked": _daysOfWeekStatus[2]},
+      {"name": "Do", "isChecked": _daysOfWeekStatus[3]},
+      {"name": "Fr", "isChecked": _daysOfWeekStatus[4]},
+      {"name": "Sa", "isChecked": _daysOfWeekStatus[5]},
+      {"name": "So", "isChecked": _daysOfWeekStatus[6]},
     ];
 
-
+    /// XmlAttribute [,,,operator="="]
+    _yearOperatorStates = _operatorSelection(widget.event.rule['Year'][3]);
 
     check = false;
     _controllerName = TextEditingController();
@@ -265,7 +261,7 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
                       ),
                       child: TextButton(
                         style: ButtonStyle(
-                            overlayColor: MaterialStateProperty.all(Colors.amber),
+                            overlayColor: MaterialStateProperty.all(Colors.amber.withOpacity(0.1)),
                             shape: MaterialStateProperty.all(RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(15.0)
                             ))
@@ -311,8 +307,8 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
                     childCount: widget.event.rules[_timerIndex].length
                   )
               ),
-              SliverToBoxAdapter(child: _header(context, 'Zustand'),),
-              SliverToBoxAdapter(child: _switchOnOff(context, 'Status Timer Event', Icon(Icons.watch_later_outlined), widget.id),)
+              //SliverToBoxAdapter(child: _header(context, 'Zustand'),),
+              SliverToBoxAdapter(child: _switchOnOff(context, 'Speichern', Icon(Icons.save_outlined), widget.id),)
             ]
         ),
     );
@@ -422,22 +418,13 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
         child: TextButton(
           onPressed: () {
             setState(() {
-              if (_enabled == false) {
-                _enabled = true;
                 futureSettingTimer.setTimerOptions(customData: widget.event);
                 //futureDeleteTimer.deleteTimer(id: id);
                 //futureSettingTimer.setTimerEnabled(timerEnabled: 'true');
-              } else {
-                _enabled = false;
-                futureSettingTimer.setTimerOptions(customData: widget.event);
-                //futureDeleteTimer.deleteTimer(id: id);
-                //futureSettingTimer.setTimerEnabled(timerEnabled: 'false');
-              }
-
             });
           },
           style: ButtonStyle(
-              overlayColor: MaterialStateProperty.all(Colors.amber),
+              overlayColor: MaterialStateProperty.all(Colors.amber.withOpacity(0.1)),
               shape: MaterialStateProperty.all(RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15.0)
               ))
@@ -448,6 +435,8 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
               color: Colors.amber,
               size: 30.0,
             ),
+
+            contentPadding: EdgeInsets.only(left: 100),
             title: Text(
               name,
               style: const TextStyle(
@@ -455,7 +444,7 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
                   fontSize: 18.0
               ),
             ),
-            trailing: Icon(Icons.power_settings_new_outlined, color: true ? Colors.greenAccent : Colors.redAccent,),
+            //trailing: Icon(Icons.power_settings_new_outlined, color: _enabled ? Colors.greenAccent : Colors.redAccent,),
           ),
         ),
       ),
@@ -474,7 +463,6 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
               Colors.black,
               Colors.grey
             ],
-
           ),
         ),
         child: TextButton(
@@ -507,6 +495,104 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
     );
   }
 
+  Widget _daysOfWeek(BuildContext context) {
+    return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _checkBox(context, _weekDays[0]['name'], _weekDays[0]['isChecked'], 0),
+          _checkBox(context, _weekDays[1]['name'], _weekDays[1]['isChecked'], 1),
+          _checkBox(context, _weekDays[2]['name'], _weekDays[2]['isChecked'], 2),
+          _checkBox(context, _weekDays[3]['name'], _weekDays[3]['isChecked'], 3),
+          _checkBox(context, _weekDays[4]['name'], _weekDays[4]['isChecked'], 4),
+          _checkBox(context, _weekDays[5]['name'], _weekDays[5]['isChecked'], 5),
+          _checkBox(context, _weekDays[6]['name'], _weekDays[6]['isChecked'], 6),
+        ]
+    );
+  }
+
+  Widget _year(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Container(
+          height: 50,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            controller: ScrollController(),
+            itemCount: 6,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: EdgeInsets.only(left: 5.0, right: 5.0),
+                  child: Container(
+                    width: 80,
+                    height: 70,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: _operatorSelection(widget.event.rule['Year'][3])[index] ? Colors.orange : Colors.black),
+                        color: Colors.black.withOpacity(0.4),
+                        borderRadius: BorderRadius.all(Radius.circular(20))
+                    ),
+                    child: Center(
+                      child: TextButton(
+                          onPressed: () {
+                            setState(() {
+                              _changeOperator(index, widget.event.rule['Year'][3]);
+                            });
+                          },
+                          child: Text(
+                            _operatorsDummys[index],
+                            style: TextStyle(
+                              color: Colors.white
+                            ),
+                          )
+                      ),
+                    ),
+                  ),
+                );
+              }
+          ),
+        ),
+        SizedBox(
+          height: 20,
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            IconButton(
+                onPressed: () {
+                  setState(() {
+                    /// XmlAttribute [,,noYear="2022",]
+                    _countDownYear(widget.event.rule['Year'][2]);
+                  });
+                },
+                icon: Icon(
+                    Icons.arrow_back_ios,
+                  color: Colors.white,
+                )
+            ),
+            Text(
+              widget.event.rule['Year'][2].value,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 25.0
+              ),
+            ),
+            IconButton(
+                onPressed: () {
+                  setState(() {
+                    _countUpYear(widget.event.rule['Year'][2]);
+                  });
+                },
+                icon: Icon(
+                    Icons.arrow_forward_ios,
+                  color: Colors.white,
+                )
+            )
+          ],
+        )
+      ],
+    );
+  }
+
 
   Widget _rules(BuildContext context, String name, Icon icon) {
     return Padding(
@@ -520,35 +606,9 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
               Colors.black,
               Colors.grey
             ],
-
           ),
         ),
-        child:/* TextButton(
-          onPressed: () {
-            _showChangeRulesDialog(rule: name);
-            /*
-            Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => TimerSettingsPage(name: name, times: time,))
-            );
-
-             */
-          },
-          style: ButtonStyle(
-              overlayColor: MaterialStateProperty.all(Colors.amber),
-              shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15.0)
-              ))
-          ),
-          child:*/ ExpansionTile(
-            /*
-            leading: Icon(
-              icon.icon,
-              color: Colors.amber,
-              size: 30.0,
-            ),
-
-             */
+        child: ExpansionTile(
             title: Text(
               name,
               style: const TextStyle(
@@ -557,28 +617,12 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
               ),
             ),
             children: [
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-
-                  _checkBox(context, _weekDays[0]['name'], _weekDays[0]['isChecked'], 0),
-                  _checkBox(context, _weekDays[1]['name'], _weekDays[1]['isChecked'], 1),
-                  _checkBox(context, _weekDays[2]['name'], _weekDays[2]['isChecked'], 2),
-                  _checkBox(context, _weekDays[3]['name'], _weekDays[3]['isChecked'], 3),
-                  _checkBox(context, _weekDays[4]['name'], _weekDays[4]['isChecked'], 4),
-                  _checkBox(context, _weekDays[5]['name'], _weekDays[5]['isChecked'], 5),
-                  _checkBox(context, _weekDays[6]['name'], _weekDays[6]['isChecked'], 6),
-
-                ]
-
-
-
-              )
+              if (name == 'DaysOfWeek')
+                _daysOfWeek(context),
+              if (name == 'Year')
+                _year(context)
             ],
-            //trailing: Icon(Icons.edit, color: Colors.amber,),
           ),
-       // ),
       ),
     );
   }
@@ -600,7 +644,7 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
             onChanged: (value) {
               setState(() {
                 _weekDays[day]['isChecked'] = !state;
-
+                _changeDaysOfWeek(widget.event.rule['DaysOfWeek'], !state, day);
               });
             }
         )
@@ -610,6 +654,8 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
 
   /// Rules Widgets
   /// DaysOfWeek
+  ///
+  /*
   Widget _daysOfWeek(BuildContext context) {
     List _weekDays = [];
     return SizedBox(
@@ -641,5 +687,6 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
       ),
     );
   }
+  */
 
 }

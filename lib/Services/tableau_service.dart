@@ -9,7 +9,7 @@ class TableauService extends StateNotifier<Dio> {
 
   final Ref ref;
   final String basicUrl = "http://access.lcn.de/LCNGVSDemo/WebServices/Tableau1.asmx/";
-
+  //final String basicUrl = "http://192.168.0.190/LCNGVS/WebServices/Tableau1.asmx/";
   //final Dio _dio = Dio();
 
   Future<List> getTableaus() async {
@@ -18,7 +18,7 @@ class TableauService extends StateNotifier<Dio> {
     Dio _dio = ref.watch(dioProvider);
     Response res = await _dio.post(
         basicUrl+serviceMethod,
-        options: Options(headers: {'Content-Type': 'application/json', })
+        options: Options(headers: {'Content-Type': 'application/json',})
     );
     print('drin');
     Map resMap = res.data;
