@@ -29,6 +29,16 @@ class _TimerPageState extends ConsumerState<TimerPage> {
       ),
       body: Stack(
         children: [
+          Container(
+            height: MediaQuery.of(context).size.height,
+            width: MediaQuery.of(context).size.width,
+            child: Image(
+              image: AssetImage(
+                'assets/login.jpg',
+              ),
+              fit: BoxFit.cover,
+            ),
+          ),
           //_listContent(context, data[index].name, data[index].times[0], data[index], data[index].id);
         Container(
           child: FutureBuilder<List<Event>> (
@@ -144,7 +154,7 @@ class _TimerPageState extends ConsumerState<TimerPage> {
                 ),
               );
             } else {
-              return Container();
+              return CircularProgressIndicator();
             }
           }
         ),
@@ -158,17 +168,17 @@ class _TimerPageState extends ConsumerState<TimerPage> {
       padding: const EdgeInsets.only(top: 4.0, bottom: 4.0, left: 8.0, right: 8.0),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15.0),
+          borderRadius: BorderRadius.circular(30.0),
           gradient: RadialGradient(
             radius: 5,
             colors: [
-              Colors.black,
-              Colors.grey
+              Colors.black.withOpacity(0.5),
+              Colors.grey.withOpacity(0.1)
             ],
 
           ),
         ),
-        child: TextButton(
+          /*
           onPressed: () {
             Navigator.push(
                 context,
@@ -182,29 +192,63 @@ class _TimerPageState extends ConsumerState<TimerPage> {
                   borderRadius: BorderRadius.circular(15.0)
               ))
           ),
-          child: ListTile(
-            leading: Icon(
-              Icons.watch_later_outlined,
-              color: Colors.amber,
-              size: 30.0,
-            ),
-            title: Text(
-              name,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18.0
-              ),
-            ),
-            subtitle: Text(
-              time,
-              style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 12.0
-              ),
-            ),
+          */
+          child: Column(
+            children: [
+              ListTile(
+                leading: Icon(
+                  Icons.watch_later_outlined,
+                  color: Colors.amber,
+                  size: 30.0,
+                ),
+                title: Text(
+                  name,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18.0
+                  ),
+                ),
+                subtitle: Text(
+                  time,
+                  style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 12.0
+                  ),
+                ),
+                trailing: IconButton(
+                    onPressed: () {
 
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => TimerSettingsPage(name: name, event: event, id: id)
+                            )
+                        );
+
+                    },
+                    icon: Icon(
+                        Icons.settings,
+                      color: Colors.amber,
+                    )),
+              ),
+              Container(
+                width: MediaQuery.of(context).size.width,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Align(
+                    alignment: Alignment.bottomLeft,
+                    child: Switch(
+                      value: true,
+                      onChanged: (value) {
+                        setState(() {
+
+                        });
+                      } ,
+                    ),
+                  ),
+                ),
+              )
+            ],
           ),
-        ),
       ),
     );
   }

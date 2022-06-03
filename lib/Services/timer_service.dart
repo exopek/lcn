@@ -5,6 +5,13 @@ import 'package:lcn/Providers/dio_provider.dart';
 import 'package:xml/xml.dart';
 import 'package:html/parser.dart' as html;
 
+/// Vorhandene Services
+/// setTimerEnabled Zeitschaltuhr Ein- und Ausschalten. Kein selektiertes Schalten einzelner Uhren
+/// isTimerEnabled Abfrage on die Zeitschaltuhren ein- oder ausgeschaltet sind
+/// deleteTimer Zeitschaltuhr löschen
+/// getTimerEvent Abfrage aller Zeitschaltuhren
+/// setTimerOptions Verändern von Einstellungen
+
 class TimerService extends StateNotifier<Dio> {
 
   TimerService(this.ref) : super(Dio());

@@ -618,8 +618,10 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
             ),
             children: [
               if (name == 'DaysOfWeek')
+                 /// <Rule xsi:type="DaysOfWeek" allow="true" mo="false" tu="false" we="false" th="true" fr="true" sa="true" su="true">
                 _daysOfWeek(context),
               if (name == 'Year')
+                /// <Rule xsi:type="Year" allow="true" yearNo="2024" operator="&lt;=" />
                 _year(context)
             ],
           ),

@@ -61,35 +61,41 @@ class _HomePageState extends ConsumerState<HomePage> {
           )
         ],
       ),
-      body: Column(
-        children: [
-          Container(
-            height: MediaQuery.of(context).size.height*0.17,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: customTableaus.length,
-                itemBuilder: (context, index) {
-                  return _lastTableaus(context, customTableaus[index]['Value'], {'Strings': customTableaus});
-                }
-            )
-          ),
-          Expanded(
-            child: Container(
-              child: futureGetTableaus.when(
-                        data: (data) => ListView.builder(
-                          //physics: BouncingScrollPhysics()..parent,
-                            itemBuilder: (context, index) {
-                              Map _tempData = data[index];
-                              return _tableauGroupsContent(context, _tempData.keys.first, _tempData.values.first);
-                        },
-                          itemCount: data.length,
-              ),
-              error: (e, st) => Container(child: Text(e.toString(), style: TextStyle(color: Colors.white),),),
-              loading: () => CircularProgressIndicator()
-            )
+      body: SafeArea(
+        child: Column(
+          children: [
+            Container(
+              height: MediaQuery.of(context).size.height*0.17,
+              child: ListView.builder(
+                physics: BouncingScrollPhysics(),
+                scrollDirection: Axis.horizontal,
+                itemCount: customTableaus.length,
+                  itemBuilder: (context, index) {
+                    return _lastTableaus(context, customTableaus[index]['Value'], {'Strings': customTableaus});
+                  }
+              )
             ),
-          )
-        ],
+            SizedBox(
+              height: 20.0,
+            ),
+            Expanded(
+              child: Container(
+                child: futureGetTableaus.when(
+                          data: (data) => ListView.builder(
+                            physics: BouncingScrollPhysics(),
+                              itemBuilder: (context, index) {
+                                Map _tempData = data[index];
+                                return _tableauGroupsContent(context, _tempData.keys.first, _tempData.values.first);
+                          },
+                            itemCount: data.length,
+                ),
+                error: (e, st) => Container(child: Text(e.toString(), style: TextStyle(color: Colors.white),),),
+                loading: () => CircularProgressIndicator()
+              )
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
