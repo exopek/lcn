@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lcn/Models/models.dart';
 import 'package:lcn/Providers/dio_provider.dart';
+import 'package:lcn/Services/timer_service.dart';
 import 'package:lcn/Views/timer_settings_page.dart';
+import 'package:xml/xml.dart';
 
 class TimerPage extends ConsumerStatefulWidget {
   const TimerPage({Key? key}) : super(key: key);
@@ -12,10 +14,21 @@ class TimerPage extends ConsumerStatefulWidget {
 }
 
 class _TimerPageState extends ConsumerState<TimerPage> {
+
+
+  void _changeTimerEnabled(bool enabled, Event event, TimerService timerService)  {
+    Map<String, dynamic> tmpEvent = Event.fromMap(event.toMap()).toMap();
+    //attribute.value = enabled.toString();
+    tmpEvent['enabled'] = enabled.toString();
+
+    timerService.setTimerOptions(customData: Event.fromMap(tmpEvent), timerName: event.name);
+  }
+
   @override
   Widget build(BuildContext context) {
     //final futureGetTimer = ref.watch(futureGetTimerProvider);
     final futureSettingTimer = ref.read(dioTimerProvider);
+    print(futureSettingTimer.runtimeType);
     return Scaffold(
       backgroundColor: Color.fromRGBO(19, 19, 19, 1.0),
       appBar: AppBar(
@@ -48,7 +61,7 @@ class _TimerPageState extends ConsumerState<TimerPage> {
                 return ListView.builder(
                     itemCount: snapshot.data!.length,
                     itemBuilder: (context, index) {
-                      return _listContent(context, snapshot.data![index].name, snapshot.data![index].times[0], snapshot.data![index], snapshot.data![index].id);
+                      return _listContent(context, snapshot.data![index].name, snapshot.data![index].times[0], snapshot.data![index], snapshot.data![index].id, snapshot.data![index].enabled);
                   }
                 );
               } else if (snapshot.hasError) {
@@ -163,7 +176,14 @@ class _TimerPageState extends ConsumerState<TimerPage> {
   }
 
 
-  Widget _listContent(BuildContext context, String name, String time, Event event, String id) {
+  Widget _listContent(BuildContext context, String name, String time, Event event, String id, String enabled) {
+    final futureSettingTimer = ref.read(dioTimerProvider);
+    bool _enabled = false;
+    if (enabled == 'true') {
+      _enabled = true;
+    } else {
+      _enabled = false;
+    }
     return Padding(
       padding: const EdgeInsets.only(top: 4.0, bottom: 4.0, left: 8.0, right: 8.0),
       child: Container(
@@ -173,7 +193,8 @@ class _TimerPageState extends ConsumerState<TimerPage> {
             radius: 5,
             colors: [
               Colors.black.withOpacity(0.5),
-              Colors.grey.withOpacity(0.1)
+              Color.fromRGBO(60, 60, 59, 0.1)
+              //Colors.grey.withOpacity(0.1)
             ],
 
           ),
@@ -198,7 +219,7 @@ class _TimerPageState extends ConsumerState<TimerPage> {
               ListTile(
                 leading: Icon(
                   Icons.watch_later_outlined,
-                  color: Colors.amber,
+                  color: Color.fromRGBO(255, 208, 11, 1),
                   size: 30.0,
                 ),
                 title: Text(
@@ -227,7 +248,7 @@ class _TimerPageState extends ConsumerState<TimerPage> {
                     },
                     icon: Icon(
                         Icons.settings,
-                      color: Colors.amber,
+                      color: Color.fromRGBO(255, 208, 11, 1),
                     )),
               ),
               Container(
@@ -237,10 +258,10 @@ class _TimerPageState extends ConsumerState<TimerPage> {
                   child: Align(
                     alignment: Alignment.bottomLeft,
                     child: Switch(
-                      value: true,
+                      value: _enabled,
                       onChanged: (value) {
                         setState(() {
-
+                          _changeTimerEnabled(value, event, futureSettingTimer);
                         });
                       } ,
                     ),

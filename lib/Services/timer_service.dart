@@ -74,13 +74,14 @@ class TimerService extends StateNotifier<Dio> {
     ///XML Parser sortiert alles als Event Model
     final timerDocument = XmlDocument.parse(res.data);
     var children = timerDocument.rootElement.children;
+
     children.forEach((element) {
       if (element.attributes.isNotEmpty) {
         List times = [];
+        List rules = [];
         late String name;
         late String id;
         late String enabled;
-        List rules = [];
         Map<String, dynamic> rule = new Map();
         ///id and enabled
         id = element.attributes[0].value;
@@ -92,10 +93,13 @@ class TimerService extends StateNotifier<Dio> {
         element.findAllElements('Time').forEach((timeElement) {
           times.add(timeElement.attributes.first.value);
           List temp_rules = [];
+          rule = {};
           ///rules
           timeElement.findAllElements('And').forEach((andElement) {
             rule['${andElement.findAllElements('Rule').first.attributes.first.value}'] = andElement.findAllElements('Rule').first.attributes;
             temp_rules.add(andElement.findAllElements('Rule').first.attributes);
+            //temp_rules.addEntries(MapEntry(key, andElement.findAllElements('Rule').first.attributes));
+            //temp_rules[andElement.findAllElements('Rule').first.attributes.single.]
           });
           rules.add(temp_rules);
         });
@@ -114,16 +118,20 @@ class TimerService extends StateNotifier<Dio> {
       }
     }
     );
-
+    print(events[1].rules);
     return events;
   }
 
 
-  Future<void> setTimerOptions({required Event customData}) async {
+  Future<void> setTimerOptions({required Event customData, required String timerName}) async {
     /// liegt nur als SOAP 1.1 und 1.2 ACTION vor AddOrReplaceTimer
     print('customData------------------');
     print(customData.toMap());
     late List customUserData;
+
+    /// Init Datastructures
+
+
     List<XmlNode> rules = [];
     List time = [];
 
@@ -133,7 +141,7 @@ class TimerService extends StateNotifier<Dio> {
     <soap:Body>
     <AddOrReplaceTimer xmlns="http://www.lcn.de/LCNGVS/">
     <Event id="${customData.id}" enabled="${customData.enabled}">
-    <Description>${customData.name}</Description>
+    <Description>${timerName}</Description>
     </Event>
     </AddOrReplaceTimer>
     </soap:Body>
@@ -173,77 +181,92 @@ class TimerService extends StateNotifier<Dio> {
       return builder.buildFragment();
     }
 
-    rules.add(buildRulesDayOfWeek(
-        type: 'Rule',
-        xsiType: 'DaysOfWeek',
-        attribute_allow: 'true',
-        attribute_mo: customData.rule['DaysOfWeek'][2].value,
-        attribute_tu: customData.rule['DaysOfWeek'][3].value,
-        attribute_we: customData.rule['DaysOfWeek'][4].value,
-        attribute_thu: customData.rule['DaysOfWeek'][5].value,
-        attribute_fr: customData.rule['DaysOfWeek'][6].value,
-        attribute_sa: customData.rule['DaysOfWeek'][7].value,
-        attribute_su: customData.rule['DaysOfWeek'][8].value));
-    //rules.add(buildRulesDayOfWeek(type: 'Rule', xsiType: 'DaysOfWeek', attribute_allow: 'true', attribute_mo: 'true', attribute_tu: 'true', attribute_we: 'true', attribute_thu: 'true', attribute_fr: 'true', attribute_sa: 'true', attribute_su: 'true'));
-    rules.add(buildRulesYear(
-        type: 'Rule',
-        xsiType: 'Year',
-        attribute_allow: 'true',
-        attribute_year: customData.rule['Year'][2].value,
-        attribute_op: customData.rule['Year'][3].value));
-    /// And Node
-    XmlNode buildAnd({required String type}) {
-      final builder = new XmlBuilder();
-      builder.element(type, nest: () {
-      });
-      return builder.buildFragment();
-    }
-    XmlNode xmlAnd = buildAnd(type: 'And');
+    ///------------------------------------------------------------------------------------------///
 
-    /// Rule Node
-    XmlNode buildRule({required String type, required String xsiType, required String allowState}) {
-      final builder = new XmlBuilder();
-      builder.element(type, nest: () {
-        builder.attribute('xsi:type', xsiType);
-        builder.attribute('allow', allowState);
+    /// Loop to build Times Node
+    customData.times.forEach((timeValue) {
+
+
+      //if (customData.)
+      /// Add XmlNodes to a List which contains a possible Rule
+      rules.add(buildRulesDayOfWeek(
+          type: 'Rule',
+          xsiType: 'DaysOfWeek',
+          attribute_allow: 'true',
+          attribute_mo: customData.rule['DaysOfWeek'][2].value,
+          attribute_tu: customData.rule['DaysOfWeek'][3].value,
+          attribute_we: customData.rule['DaysOfWeek'][4].value,
+          attribute_thu: customData.rule['DaysOfWeek'][5].value,
+          attribute_fr: customData.rule['DaysOfWeek'][6].value,
+          attribute_sa: customData.rule['DaysOfWeek'][7].value,
+          attribute_su: customData.rule['DaysOfWeek'][8].value));
+      //rules.add(buildRulesDayOfWeek(type: 'Rule', xsiType: 'DaysOfWeek', attribute_allow: 'true', attribute_mo: 'true', attribute_tu: 'true', attribute_we: 'true', attribute_thu: 'true', attribute_fr: 'true', attribute_sa: 'true', attribute_su: 'true'));
+      rules.add(buildRulesYear(
+          type: 'Rule',
+          xsiType: 'Year',
+          attribute_allow: 'true',
+          attribute_year: customData.rule['Year'][2].value,
+          attribute_op: customData.rule['Year'][3].value));
+
+      /// And Node
+      XmlNode buildAnd({required String type}) {
+        final builder = new XmlBuilder();
+        builder.element(type, nest: () {
+        });
+        return builder.buildFragment();
+      }
+      XmlNode xmlAnd = buildAnd(type: 'And');
+
+      /// Rule Node
+      XmlNode buildRule({required String type, required String xsiType, required String allowState}) {
+        final builder = new XmlBuilder();
+        builder.element(type, nest: () {
+          builder.attribute('xsi:type', xsiType);
+          builder.attribute('allow', allowState);
+        });
+        return builder.buildFragment();
+      }
+      XmlNode xmlRule = buildRule(type: 'Rule', xsiType: 'AllRule', allowState: 'true');
+      int index = 0;
+      XmlNode userNode = xmlAnd;
+      rules.forEach((element) {
+        userNode.findAllElements('And').elementAt(0).children.add(element);
+        xmlRule.findAllElements('Rule').elementAt(index).children.add(userNode);
+        userNode.findAllElements('And').first.children.removeAt(0);
+        index = index + 1;
       });
-      return builder.buildFragment();
-    }
-    XmlNode xmlRule = buildRule(type: 'Rule', xsiType: 'AllRule', allowState: 'true');
-    int index = 0;
-    XmlNode userNode = xmlAnd;
-    rules.forEach((element) {
-      userNode.findAllElements('And').elementAt(0).children.add(element);
-      xmlRule.findAllElements('Rule').elementAt(index).children.add(userNode);
-      userNode.findAllElements('And').first.children.removeAt(0);
-      index = index + 1;
+
+      /// Description Node
+      XmlNode buildDescription({required String type}) {
+        final builder = new XmlBuilder();
+        builder.element(type, nest: () {
+        });
+        return builder.buildFragment();
+      }
+      XmlNode xmlDescription = buildDescription(type: 'Description');
+
+
+      /// Time Node
+      XmlNode buildTime({required String type, required String time}) {
+        final builder = new XmlBuilder();
+        builder.element(type, nest: () {
+          builder.attribute('time', time);
+        });
+        return builder.buildFragment();
+      }
+      XmlNode xmlTime = buildTime(type: 'Time', time: timeValue);
+      xmlTime.findAllElements('Time').first.children.add(xmlDescription);
+      xmlTime.findAllElements('Time').first.children.add(xmlRule);
+
+
+      /// List of Time Documents
+      time.add(xmlTime);
     });
 
-    /// Description Node
-    XmlNode buildDescription({required String type}) {
-      final builder = new XmlBuilder();
-      builder.element(type, nest: () {
-      });
-      return builder.buildFragment();
-    }
-    XmlNode xmlDescription = buildDescription(type: 'Description');
 
 
-    /// Time Node
-    XmlNode buildTime({required String type, required String time}) {
-      final builder = new XmlBuilder();
-      builder.element(type, nest: () {
-        builder.attribute('time', time);
-      });
-      return builder.buildFragment();
-    }
-    XmlNode xmlTime = buildTime(type: 'Time', time: '14:50:00');
-    xmlTime.findAllElements('Time').first.children.add(xmlDescription);
-    xmlTime.findAllElements('Time').first.children.add(xmlRule);
 
 
-    /// List of Time Documents
-    time.add(xmlTime);
 
 
     /// Times Node
@@ -259,14 +282,18 @@ class TimerService extends StateNotifier<Dio> {
       xmlTimes.findAllElements('Times').first.children.add(element);
     });
 
-    /// Description Node
+
+
     XmlNode buildAction({required String type}) {
       final builder = new XmlBuilder();
       builder.element(type, nest: () {
       });
       return builder.buildFragment();
     }
-    XmlNode xmlAction = buildDescription(type: 'Action');
+
+
+    /// Action Node
+    XmlNode xmlAction = buildAction(type: 'Action');
 
     /// Event Node
     final document = XmlDocument.parse(bodyTest);

@@ -12,7 +12,7 @@ class Event {
 
     final String name = data['name'];
     final String id = data['id'];
-    final String enabled = data['enabled'];
+    final String enabled = data['enabled'].toString();
     final List times = data['times'];
     final List rules = data['rules'];
     final Map rule = data['rule'];

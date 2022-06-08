@@ -29,8 +29,9 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
   late List<bool> _yearOperatorStates;
   late bool check;
   List<String> _operatorsDummys = ['=', '!=', '<=', '>=', '<', '>'];
+  late List<bool> _daysOfWeekStatus;
 
-  void _showChangeTimeDialog() => showDialog(
+  void _showChangeTimeDialog(int index) => showDialog(
       context: context,
       builder: (context) => Dialog(
         child: Container(
@@ -48,6 +49,12 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
                       height: 20,
                       width: 70,
                       child: TextField(
+                        decoration: InputDecoration(
+                            hintText: '00',
+                          hintStyle: TextStyle(
+                            color: Colors.white.withOpacity(0.3)
+                          )
+                        ),
                         controller: _controllerHour,
                         textAlign: TextAlign.center,
                         style: TextStyle(
@@ -70,6 +77,12 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
                       height: 20,
                       width: 70,
                       child: TextField(
+                        decoration: InputDecoration(
+                            hintText: '00',
+                            hintStyle: TextStyle(
+                                color: Colors.white.withOpacity(0.3)
+                            )
+                        ),
                         controller: _controllerMinutes,
                         textAlign: TextAlign.center,
                         style: TextStyle(
@@ -92,6 +105,12 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
                       height: 20,
                       width: 70,
                       child: TextField(
+                        decoration: InputDecoration(
+                          hintText: '00',
+                            hintStyle: TextStyle(
+                                color: Colors.white.withOpacity(0.3)
+                            )
+                        ),
                         controller: _controllerSeconds,
                         textAlign: TextAlign.center,
                         style: TextStyle(
@@ -112,6 +131,11 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
                     ))
                   ),
                     onPressed: () {
+                      String _time = '${_controllerHour.text}:${_controllerMinutes.text}:${_controllerSeconds.text}';
+                      setState(() {
+                        _eventTimes[index] = _time;
+                        Navigator.pop(context);
+                      });
 
                     },
                     child: Text(
@@ -172,10 +196,40 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
     attribute.value = value.toString();
   }
 
+  List<Map> _initWeekDays(int index) {
+    List<Map> weekDays = [];
+    _daysOfWeekStatus = [];
+    _sortDaysOfWeek(widget.event.rules[index][0]).forEach((element) {
+      if (element.value == "true") {
+        _daysOfWeekStatus.add(true);
+      } else {
+        _daysOfWeekStatus.add(false);
+      }
+    });
+    weekDays = [
+      {"name": "Mo", "isChecked": _daysOfWeekStatus[0]},
+      {"name": "Di", "isChecked": _daysOfWeekStatus[1]},
+      {"name": "Mi", "isChecked": _daysOfWeekStatus[2]},
+      {"name": "Do", "isChecked": _daysOfWeekStatus[3]},
+      {"name": "Fr", "isChecked": _daysOfWeekStatus[4]},
+      {"name": "Sa", "isChecked": _daysOfWeekStatus[5]},
+      {"name": "So", "isChecked": _daysOfWeekStatus[6]},
+    ];
+    return weekDays;
+  }
+
   @override
   void initState() {
 
-    List<bool> _daysOfWeekStatus = [];
+    _daysOfWeekStatus = [];
+    _sortDaysOfWeek(widget.event.rules[0][0]).forEach((element) {
+      if (element.value == "true") {
+        _daysOfWeekStatus.add(true);
+      } else {
+        _daysOfWeekStatus.add(false);
+      }
+    });
+    /*
     _sortDaysOfWeek(widget.event.rule['DaysOfWeek']).forEach((element) {
       if (element.value == "true") {
         _daysOfWeekStatus.add(true);
@@ -184,6 +238,8 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
       }
 
     });
+
+     */
 
 
     //List _daysOfWeekStatus = [false, false, false, false, false, false, false,];
@@ -198,14 +254,14 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
     ];
 
     /// XmlAttribute [,,,operator="="]
-    _yearOperatorStates = _operatorSelection(widget.event.rule['Year'][3]);
+    _yearOperatorStates = _operatorSelection(widget.event.rules[0][1][3]);
 
     check = false;
     _controllerName = TextEditingController();
     _controllerHour = TextEditingController();
     _controllerMinutes = TextEditingController();
     _controllerSeconds = TextEditingController();
-    _controllerName.text = widget.name;
+    _controllerName.text = widget.event.name;
     _timerIndex = 0;
     _eventTimes = widget.event.times;
     if (widget.event.enabled == 'true') {
@@ -246,8 +302,8 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
                   return Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Container(
-                      height: 50,
-                      width: 50,
+                      height: 20,
+                      width: 20,
                       decoration: BoxDecoration(
                           gradient: RadialGradient(
                             radius: 2,
@@ -275,6 +331,8 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
                         onPressed: () {
                           setState(() {
                             _timerIndex = index;
+                            _weekDays = _initWeekDays(index);
+                            _yearOperatorStates = _operatorSelection(widget.event.rules[index][1][3]);
                           });
                         },
 
@@ -292,11 +350,14 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
               ),
 
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2
+                crossAxisCount: 2,
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+                childAspectRatio: 2.0,
               )
               ),
               SliverToBoxAdapter(child: _header(context, 'Zeit'),),
-              SliverToBoxAdapter(child: _time(context, _eventTimes[_timerIndex], Icon(Icons.watch_later_outlined)),),
+              SliverToBoxAdapter(child: _time(context, _eventTimes[_timerIndex], Icon(Icons.watch_later_outlined), _timerIndex),),
               SliverToBoxAdapter(child: _header(context, 'Bedingungen'),),
               SliverList(
                   delegate: SliverChildBuilderDelegate(
@@ -418,7 +479,7 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
         child: TextButton(
           onPressed: () {
             setState(() {
-                futureSettingTimer.setTimerOptions(customData: widget.event);
+                futureSettingTimer.setTimerOptions(customData: widget.event, timerName: _controllerName.text);
                 //futureDeleteTimer.deleteTimer(id: id);
                 //futureSettingTimer.setTimerEnabled(timerEnabled: 'true');
             });
@@ -451,7 +512,7 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
     );
   }
 
-  Widget _time(BuildContext context, String name, Icon icon) {
+  Widget _time(BuildContext context, String name, Icon icon, int index) {
     return Padding(
       padding: const EdgeInsets.only(top: 4.0, bottom: 4.0, left: 8.0, right: 8.0),
       child: Container(
@@ -467,7 +528,7 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
         ),
         child: TextButton(
           onPressed: () {
-            _showChangeTimeDialog();
+            _showChangeTimeDialog(index);
           },
           style: ButtonStyle(
               overlayColor: MaterialStateProperty.all(Colors.amber),
@@ -496,6 +557,15 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
   }
 
   Widget _daysOfWeek(BuildContext context) {
+    _weekDays = [
+      {"name": "Mo", "isChecked": _daysOfWeekStatus[0]},
+      {"name": "Di", "isChecked": _daysOfWeekStatus[1]},
+      {"name": "Mi", "isChecked": _daysOfWeekStatus[2]},
+      {"name": "Do", "isChecked": _daysOfWeekStatus[3]},
+      {"name": "Fr", "isChecked": _daysOfWeekStatus[4]},
+      {"name": "Sa", "isChecked": _daysOfWeekStatus[5]},
+      {"name": "So", "isChecked": _daysOfWeekStatus[6]},
+    ];
     return Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
@@ -527,7 +597,7 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
                     width: 80,
                     height: 70,
                     decoration: BoxDecoration(
-                      border: Border.all(color: _operatorSelection(widget.event.rule['Year'][3])[index] ? Colors.orange : Colors.black),
+                      border: Border.all(color: _yearOperatorStates[index] ? Colors.orange : Colors.black),
                         color: Colors.black.withOpacity(0.4),
                         borderRadius: BorderRadius.all(Radius.circular(20))
                     ),

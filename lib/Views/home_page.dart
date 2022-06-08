@@ -90,7 +90,13 @@ class _HomePageState extends ConsumerState<HomePage> {
                             itemCount: data.length,
                 ),
                 error: (e, st) => Container(child: Text(e.toString(), style: TextStyle(color: Colors.white),),),
-                loading: () => CircularProgressIndicator()
+                loading: () => Center(
+                  child: SizedBox(
+                    height: 50,
+                    width: 50,
+                    child: CircularProgressIndicator(),
+                  ),
+                )
               )
               ),
             )
