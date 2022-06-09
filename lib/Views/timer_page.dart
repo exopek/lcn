@@ -61,7 +61,7 @@ class _TimerPageState extends ConsumerState<TimerPage> {
                 return ListView.builder(
                     itemCount: snapshot.data!.length,
                     itemBuilder: (context, index) {
-                      return _listContent(context, snapshot.data![index].name, snapshot.data![index].times[0], snapshot.data![index], snapshot.data![index].id, snapshot.data![index].enabled);
+                      return _listContent(context, snapshot.data![index].name, snapshot.data![index], snapshot.data![index].id, snapshot.data![index].enabled);
                   }
                 );
               } else if (snapshot.hasError) {
@@ -176,7 +176,7 @@ class _TimerPageState extends ConsumerState<TimerPage> {
   }
 
 
-  Widget _listContent(BuildContext context, String name, String time, Event event, String id, String enabled) {
+  Widget _listContent(BuildContext context, String name, Event event, String id, String enabled) {
     final futureSettingTimer = ref.read(dioTimerProvider);
     bool _enabled = false;
     if (enabled == 'true') {
@@ -230,7 +230,7 @@ class _TimerPageState extends ConsumerState<TimerPage> {
                   ),
                 ),
                 subtitle: Text(
-                  time,
+                  event.times.isNotEmpty ? event.times[0] : 'Trage eine Zeit ein',
                   style: const TextStyle(
                       color: Colors.white70,
                       fontSize: 12.0

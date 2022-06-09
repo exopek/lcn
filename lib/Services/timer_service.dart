@@ -132,7 +132,7 @@ class TimerService extends StateNotifier<Dio> {
     /// Init Datastructures
 
 
-    List<XmlNode> rules = [];
+
     List time = [];
 
 
@@ -184,29 +184,30 @@ class TimerService extends StateNotifier<Dio> {
     ///------------------------------------------------------------------------------------------///
 
     /// Loop to build Times Node
+    int _timeValueCounter = 0;
     customData.times.forEach((timeValue) {
 
-
+      List<XmlNode> rules = [];
       //if (customData.)
       /// Add XmlNodes to a List which contains a possible Rule
       rules.add(buildRulesDayOfWeek(
           type: 'Rule',
           xsiType: 'DaysOfWeek',
           attribute_allow: 'true',
-          attribute_mo: customData.rule['DaysOfWeek'][2].value,
-          attribute_tu: customData.rule['DaysOfWeek'][3].value,
-          attribute_we: customData.rule['DaysOfWeek'][4].value,
-          attribute_thu: customData.rule['DaysOfWeek'][5].value,
-          attribute_fr: customData.rule['DaysOfWeek'][6].value,
-          attribute_sa: customData.rule['DaysOfWeek'][7].value,
-          attribute_su: customData.rule['DaysOfWeek'][8].value));
+          attribute_mo: customData.rules[_timeValueCounter][0][2].value,
+          attribute_tu: customData.rules[_timeValueCounter][0][3].value,
+          attribute_we: customData.rules[_timeValueCounter][0][4].value,
+          attribute_thu: customData.rules[_timeValueCounter][0][5].value,
+          attribute_fr: customData.rules[_timeValueCounter][0][6].value,
+          attribute_sa: customData.rules[_timeValueCounter][0][7].value,
+          attribute_su: customData.rules[_timeValueCounter][0][8].value));
       //rules.add(buildRulesDayOfWeek(type: 'Rule', xsiType: 'DaysOfWeek', attribute_allow: 'true', attribute_mo: 'true', attribute_tu: 'true', attribute_we: 'true', attribute_thu: 'true', attribute_fr: 'true', attribute_sa: 'true', attribute_su: 'true'));
       rules.add(buildRulesYear(
           type: 'Rule',
           xsiType: 'Year',
           attribute_allow: 'true',
-          attribute_year: customData.rule['Year'][2].value,
-          attribute_op: customData.rule['Year'][3].value));
+          attribute_year: customData.rules[_timeValueCounter][1][2].value,
+          attribute_op: customData.rules[_timeValueCounter][1][3].value));
 
       /// And Node
       XmlNode buildAnd({required String type}) {
@@ -261,6 +262,7 @@ class TimerService extends StateNotifier<Dio> {
 
       /// List of Time Documents
       time.add(xmlTime);
+      _timeValueCounter += 1;
     });
 
 
