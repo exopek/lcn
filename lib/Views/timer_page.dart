@@ -21,7 +21,7 @@ class _TimerPageState extends ConsumerState<TimerPage> {
     //attribute.value = enabled.toString();
     tmpEvent['enabled'] = enabled.toString();
 
-    timerService.setTimerOptions(customData: Event.fromMap(tmpEvent), timerName: event.name);
+    //timerService.setTimerOptions(customData: Event.fromMap(tmpEvent), timerName: event.name);
   }
 
   @override

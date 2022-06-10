@@ -5,7 +5,7 @@ class Event {
   final String id;
   final String enabled;
   final List times;
-  final List rules;
+  final List<Map<String,Map<String,dynamic>>> rules;
   final Map rule;
 
   factory Event.fromMap(Map<String, dynamic> data) {
@@ -14,7 +14,7 @@ class Event {
     final String id = data['id'];
     final String enabled = data['enabled'].toString();
     final List times = data['times'];
-    final List rules = data['rules'];
+    final List<Map<String,Map<String,dynamic>>> rules = data['rules'];
     final Map rule = data['rule'];
 
     return Event(

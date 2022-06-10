@@ -78,11 +78,11 @@ class TimerService extends StateNotifier<Dio> {
     children.forEach((element) {
       if (element.attributes.isNotEmpty) {
         List times = [];
-        List rules = [];
+        List<Map<String,Map<String,dynamic>>> rules = [];
         late String name;
         late String id;
         late String enabled;
-        Map<String, dynamic> rule = new Map();
+        Map<String, Map<String, dynamic>> rule = new Map();
         ///id and enabled
         id = element.attributes[0].value;
         enabled = element.attributes[1].value;
@@ -92,16 +92,32 @@ class TimerService extends StateNotifier<Dio> {
         ///times
         element.findAllElements('Time').forEach((timeElement) {
           times.add(timeElement.attributes.first.value);
-          List temp_rules = [];
+          List<List<XmlAttribute>> temp_rules = [];
           rule = {};
           ///rules
           timeElement.findAllElements('And').forEach((andElement) {
-            rule['${andElement.findAllElements('Rule').first.attributes.first.value}'] = andElement.findAllElements('Rule').first.attributes;
+            //rule['${andElement.findAllElements('Rule').first.attributes.first.value}'] = andElement.findAllElements('Rule').first.attributes;
             temp_rules.add(andElement.findAllElements('Rule').first.attributes);
             //temp_rules.addEntries(MapEntry(key, andElement.findAllElements('Rule').first.attributes));
             //temp_rules[andElement.findAllElements('Rule').first.attributes.single.]
           });
-          rules.add(temp_rules);
+          /// Rule Element als Map bauen und in einer Liste ablegen
+          Map<String, Map<String, dynamic>> temp_rule = {};
+          temp_rules.forEach((ruleElement) {
+
+            Map<String, dynamic> temp_elements = {};
+            ruleElement.forEach((attributeElement) {
+              temp_elements[attributeElement.name.toString()] = attributeElement.value;
+            });
+            /// Entfernen unnötiger Elemente
+            temp_elements.remove('xsi:type');
+            temp_elements.remove('allow');
+            /// Bedingung/Rule wird in einer Map abgelegt
+            temp_rule[ruleElement.first.value] = temp_elements;
+            print(ruleElement);
+            //element.
+          });
+          rules.add(temp_rule);
         });
         ///model
         event = Event(
@@ -121,6 +137,7 @@ class TimerService extends StateNotifier<Dio> {
     print(events[1].rules);
     return events;
   }
+
 
 
   Future<void> setTimerOptions({required Event customData, required String timerName}) async {
@@ -194,20 +211,20 @@ class TimerService extends StateNotifier<Dio> {
           type: 'Rule',
           xsiType: 'DaysOfWeek',
           attribute_allow: 'true',
-          attribute_mo: customData.rules[_timeValueCounter][0][2].value,
-          attribute_tu: customData.rules[_timeValueCounter][0][3].value,
-          attribute_we: customData.rules[_timeValueCounter][0][4].value,
-          attribute_thu: customData.rules[_timeValueCounter][0][5].value,
-          attribute_fr: customData.rules[_timeValueCounter][0][6].value,
-          attribute_sa: customData.rules[_timeValueCounter][0][7].value,
-          attribute_su: customData.rules[_timeValueCounter][0][8].value));
+          attribute_mo: customData.rules[_timeValueCounter]['DaysOfWeek']!['mo'],
+          attribute_tu: customData.rules[_timeValueCounter]['DaysOfWeek']!['tu'],
+          attribute_we: customData.rules[_timeValueCounter]['DaysOfWeek']!['we'],
+          attribute_thu: customData.rules[_timeValueCounter]['DaysOfWeek']!['th'],
+          attribute_fr: customData.rules[_timeValueCounter]['DaysOfWeek']!['fr'],
+          attribute_sa: customData.rules[_timeValueCounter]['DaysOfWeek']!['sa'],
+          attribute_su: customData.rules[_timeValueCounter]['DaysOfWeek']!['su']));
       //rules.add(buildRulesDayOfWeek(type: 'Rule', xsiType: 'DaysOfWeek', attribute_allow: 'true', attribute_mo: 'true', attribute_tu: 'true', attribute_we: 'true', attribute_thu: 'true', attribute_fr: 'true', attribute_sa: 'true', attribute_su: 'true'));
       rules.add(buildRulesYear(
           type: 'Rule',
           xsiType: 'Year',
           attribute_allow: 'true',
-          attribute_year: customData.rules[_timeValueCounter][1][2].value,
-          attribute_op: customData.rules[_timeValueCounter][1][3].value));
+          attribute_year: customData.rules[_timeValueCounter]['Year']!['yearNo'],
+          attribute_op: customData.rules[_timeValueCounter]['Year']!['operator']));
 
       /// And Node
       XmlNode buildAnd({required String type}) {
@@ -330,4 +347,7 @@ class TimerService extends StateNotifier<Dio> {
     print(res.data);
     //return res;
   }
+
+
 }
+

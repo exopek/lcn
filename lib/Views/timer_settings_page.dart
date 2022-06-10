@@ -30,7 +30,7 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
   late List<bool> _yearOperatorStates;
   late bool check;
   List<String> _operatorsDummys = ['=', '!=', '<=', '>=', '<', '>'];
-  late List<bool> _daysOfWeekStatus;
+  //late List<bool> _daysOfWeekStatus;
 
   void _showChangeTimeDialog(int index) => showDialog(
       context: context,
@@ -153,13 +153,12 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
   );
 
 
-  void _changeDaysOfWeek(List<XmlAttribute> daysOfWeek, bool state, int day) {
-    List<XmlAttribute> _changedList = daysOfWeek;
-    XmlAttribute _weekDay = _changedList[day+2];
-    _weekDay.value = state.toString();
+  void _changeDaysOfWeek(Map<String, dynamic> daysOfWeek, bool state, String day) {
+    daysOfWeek[day] = state.toString();
   }
 
-  List<XmlAttribute> _sortDaysOfWeek(List<XmlAttribute> daysOfWeek) {
+  /*
+  List<XmlAttribute> _sortDaysOfWeek(Map daysOfWeek) {
     /// Notiz daysOfWeek einmal mit .toList kopieren damit das Model nicht verändert wird
     List<XmlAttribute> _sortedList = daysOfWeek.toList();
     _sortedList.removeAt(0);
@@ -167,11 +166,13 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
     return _sortedList;
   }
 
-  List<bool> _operatorSelection(XmlAttribute attribute) {
+   */
+
+  List<bool> _operatorSelection(String attribute) {
     List<String> _operators = ['=', '!=', '<=', '>=', '<', '>'];
     List<bool> _selection = [];
     _operators.forEach((element) {
-      if (element == attribute.value) {
+      if (element == attribute) {
         _selection.add(true);
       } else {
         _selection.add(false);
@@ -198,16 +199,17 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
   }
 
   List<Map> _initWeekDays(int index) {
-    List<Map> weekDays = [];
-    _daysOfWeekStatus = [];
-    _sortDaysOfWeek(widget.event.rules[index][0]).forEach((element) {
-      if (element.value == "true") {
+    List<Map> _weekDays = [];
+    List _daysOfWeekStatus = [];
+
+    widget.event.rules[index]['DaysOfWeek']!.forEach((key, value) {
+      if (value == "true") {
         _daysOfWeekStatus.add(true);
       } else {
         _daysOfWeekStatus.add(false);
       }
     });
-    weekDays = [
+    _weekDays = [
       {"name": "Mo", "isChecked": _daysOfWeekStatus[0]},
       {"name": "Di", "isChecked": _daysOfWeekStatus[1]},
       {"name": "Mi", "isChecked": _daysOfWeekStatus[2]},
@@ -216,59 +218,34 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
       {"name": "Sa", "isChecked": _daysOfWeekStatus[5]},
       {"name": "So", "isChecked": _daysOfWeekStatus[6]},
     ];
-    return weekDays;
+    return _weekDays;
   }
 
   @override
   void initState() {
 
-    _daysOfWeekStatus = [];
-    _weekDays = [
-      {"name": "Mo", "isChecked": false},
-      {"name": "Di", "isChecked": false},
-      {"name": "Mi", "isChecked": false},
-      {"name": "Do", "isChecked": false},
-      {"name": "Fr", "isChecked": false},
-      {"name": "Sa", "isChecked": false},
-      {"name": "So", "isChecked": false},
-    ];
+
     if (widget.event.rules.isNotEmpty) {
-      _sortDaysOfWeek(widget.event.rules[0][0]).forEach((element) {
-        if (element.value == "true") {
-          _daysOfWeekStatus.add(true);
-        } else {
-          _daysOfWeekStatus.add(false);
-        }
-      });
-
-      _weekDays = [
-        {"name": "Mo", "isChecked": _daysOfWeekStatus[0]},
-        {"name": "Di", "isChecked": _daysOfWeekStatus[1]},
-        {"name": "Mi", "isChecked": _daysOfWeekStatus[2]},
-        {"name": "Do", "isChecked": _daysOfWeekStatus[3]},
-        {"name": "Fr", "isChecked": _daysOfWeekStatus[4]},
-        {"name": "Sa", "isChecked": _daysOfWeekStatus[5]},
-        {"name": "So", "isChecked": _daysOfWeekStatus[6]},
-      ];
-
-      /// XmlAttribute [,,,operator="="]
-      _yearOperatorStates = _operatorSelection(widget.event.rules[0][1][3]);
-    }
-
-    /*
-    _sortDaysOfWeek(widget.event.rule['DaysOfWeek']).forEach((element) {
-      if (element.value == "true") {
-        _daysOfWeekStatus.add(true);
+      if (widget.event.rules[0].containsKey('DaysOfWeek')) {
+        _weekDays = _initWeekDays(0);
       } else {
-        _daysOfWeekStatus.add(false);
+        _weekDays = [
+          {"name": "Mo", "isChecked": false},
+          {"name": "Di", "isChecked": false},
+          {"name": "Mi", "isChecked": false},
+          {"name": "Do", "isChecked": false},
+          {"name": "Fr", "isChecked": false},
+          {"name": "Sa", "isChecked": false},
+          {"name": "So", "isChecked": false},
+        ];
       }
 
-    });
-
-     */
-
-
-    //List _daysOfWeekStatus = [false, false, false, false, false, false, false,];
+      if (widget.event.rules[0].containsKey('Year')) {
+        _yearOperatorStates = _operatorSelection(widget.event.rules[0]['Year']!['operator']);
+      } else {
+        _yearOperatorStates = [true, false, false, false, false, false];
+      }
+    }
 
 
     check = false;
@@ -284,9 +261,7 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
     } else {
       _enabled = false;
     }
-    //_eventTimes.add('+');
-    //_controllerTime.text = widget.event.times[0];
-    //print(widget.times);
+
     super.initState();
   }
 
@@ -363,7 +338,10 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
                         onPressed: () {
                           setState(() {
                             _timerIndex = index;
-                            _weekDays = _initWeekDays(index);
+                            if (widget.event.rules[index].containsKey('DaysOfWeek')) {
+                              _weekDays = _initWeekDays(index);
+                            }
+
                             //_yearOperatorStates = _operatorSelection(widget.event.rules[index][1][3]);
                           });
                         },
@@ -396,8 +374,16 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
                   IconButton(
                       onPressed: () {
                         setState(() {
+                          if (widget.event.rules.isNotEmpty) {
+                            widget.event.rules[_timerIndex]['DaysOfWeek'] = {'mo': 'false', 'tu': 'false', 'we': 'false', 'th': 'false', 'fr': 'false', 'sa': 'false', 'su': 'false'};
+                            widget.event.rules[_timerIndex]['Year'] = {'yearNo': '2022', 'operator': '='};
+                          } else {
+                            widget.event.rules.add({'DaysOfWeek': {'mo': 'false', 'tu': 'false', 'we': 'false', 'th': 'false', 'fr': 'false', 'sa': 'false', 'su': 'false',}});
+                            _weekDays = _initWeekDays(0);
+                          }
 
-                          widget.event.rules.add([Helper().buildRulesDayOfWeek(
+                          /*
+                              .add([Helper().buildRulesDayOfWeek(
                               type: 'Rule',
                               xsiType: 'DaysOfWeek',
                               attribute_allow: 'true',
@@ -411,12 +397,15 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
                           )
                           ]
                           );
+                          */
+                          /*
                           widget.event.rules.add([Helper().buildRulesYear(
                               type: 'Rule',
                               xsiType: 'Year',
                               attribute_allow: 'true',
                               attribute_year: '2022',
                               attribute_op: '=')]);
+                          */
                           print(widget.event);
                         });
 
@@ -432,7 +421,7 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
                   delegate: SliverChildBuilderDelegate(
 
                       (context, index) {
-                        return _rules(context, widget.event.rules[_timerIndex][index].first.value, Icon(Icons.calendar_view_week), _timerIndex);
+                        return _rules(context, widget.event.rules[_timerIndex].keys.toList()[index], Icon(Icons.calendar_view_week), _timerIndex);
                       },
                     childCount: widget.event.rules.isNotEmpty ? widget.event.rules[_timerIndex].length : 0
                   )
@@ -665,8 +654,8 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
                       child: TextButton(
                           onPressed: () {
                             setState(() {
-                              _changeOperator(index, widget.event.rules[_timerIndex][1][3]);
-                              _yearOperatorStates = _operatorSelection(widget.event.rules[_timerIndex][1][3]);
+                              //_changeOperator(index, widget.event.rules[_timerIndex][1][3]);
+                              //_yearOperatorStates = _operatorSelection(widget.event.rules[_timerIndex][1][3]);
                             });
                           },
                           child: Text(
@@ -692,7 +681,7 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
                 onPressed: () {
                   setState(() {
                     /// XmlAttribute [,,noYear="2022",]
-                    _countDownYear(widget.event.rules[_timerIndex][1][2]);
+                    //_countDownYear(widget.event.rules[_timerIndex][1][2]);
                   });
                 },
                 icon: Icon(
@@ -701,7 +690,7 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
                 )
             ),
             Text(
-              widget.event.rules[_timerIndex][1][2].value,
+              widget.event.rules[_timerIndex]['Year']!['yearNo'],
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 25.0
@@ -710,7 +699,7 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
             IconButton(
                 onPressed: () {
                   setState(() {
-                    _countUpYear(widget.event.rules[_timerIndex][1][2]);
+                    //_countUpYear(widget.event.rules[_timerIndex]);
                   });
                 },
                 icon: Icon(
@@ -777,7 +766,7 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
             onChanged: (value) {
               setState(() {
                 _weekDays[day]['isChecked'] = !state;
-                _changeDaysOfWeek(widget.event.rules[time][0], !state, day);
+                _changeDaysOfWeek(widget.event.rules[_timerIndex]['DaysOfWeek']!, !state, weekDay);
               });
             }
         )
@@ -823,3 +812,5 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
   */
 
 }
+
+
