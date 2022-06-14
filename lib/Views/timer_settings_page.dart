@@ -361,6 +361,7 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
                         setState(() {
                           /// eingabe für eine Zeit öffnen
                           _eventTimes.add('15:00:00');
+                          widget.event.rules.add({});
                         });
                       },
                       icon: Icon(
@@ -380,7 +381,6 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
                           child: Stack(
                             children: [
                               _edit ? Container(
-                                height: 100,
                                 decoration: BoxDecoration(
                                     gradient: RadialGradient(
                                       radius: 2,
@@ -405,17 +405,21 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
                                         if (widget.event.rules.isNotEmpty) {
                                           widget.event.rules.removeAt(index);
                                         }
+                                        _eventTimesState[index] = false;
                                         _eventTimes.removeAt(index);
                                         _timerIndex = 0;
+                                        _eventTimesState[0] = true;
                                       });
                                     },
-                                    child: Container(
-                                      height: 100,
-                                      child: Align(
-                                        alignment: Alignment.centerRight,
-                                        child: Icon(
-                                          Icons.cancel,
-                                          color: Colors.red,
+                                    child: Padding(
+                                      padding: EdgeInsets.only(right: 15.0),
+                                      child: Container(
+                                        child: Align(
+                                          alignment: Alignment.centerRight,
+                                          child: Icon(
+                                            Icons.cancel,
+                                            color: Colors.red,
+                                          ),
                                         ),
                                       ),
                                     )
@@ -423,7 +427,7 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
                               ) : Container(),
                               Container(
                                 height: 100,
-                                width: 135,
+                                width: _edit ? 100 : 200,
                                 decoration: BoxDecoration(
                                     gradient: RadialGradient(
                                       radius: 2,
@@ -858,7 +862,7 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
         children: [
           _edit ? Container(
             width: MediaQuery.of(context).size.width,
-            height: 58,
+            height: 100,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(15.0),
               gradient: RadialGradient(
@@ -882,7 +886,7 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
                   });
                 },
                 child: Align(
-                  alignment: Alignment.centerRight,
+                  alignment: Alignment.bottomCenter,
                   child: Icon(
                     Icons.cancel,
                     color: Colors.red,
@@ -891,7 +895,6 @@ class _TimerSettingsPageState extends ConsumerState<TimerSettingsPage> {
             ),
           ) : Container(),
           Container(
-            width: 340,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(15.0),
               gradient: RadialGradient(

@@ -1,4 +1,5 @@
 import 'package:xml/xml.dart';
+import 'package:uuid/uuid.dart';
 
 class Helper {
 
@@ -36,6 +37,9 @@ class Helper {
     return builder.buildDocument().lastElementChild!.attributes;
   }
 
+  String guid() {
+    return Uuid().v4();
+  }
 
 
 }

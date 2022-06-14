@@ -134,7 +134,7 @@ class TimerService extends StateNotifier<Dio> {
       }
     }
     );
-    print(events[1].rules);
+    //print(events[1].rules);
     return events;
   }
 
@@ -207,24 +207,30 @@ class TimerService extends StateNotifier<Dio> {
       List<XmlNode> rules = [];
       //if (customData.)
       /// Add XmlNodes to a List which contains a possible Rule
-      rules.add(buildRulesDayOfWeek(
-          type: 'Rule',
-          xsiType: 'DaysOfWeek',
-          attribute_allow: 'true',
-          attribute_mo: customData.rules[_timeValueCounter]['DaysOfWeek']!['mo'],
-          attribute_tu: customData.rules[_timeValueCounter]['DaysOfWeek']!['tu'],
-          attribute_we: customData.rules[_timeValueCounter]['DaysOfWeek']!['we'],
-          attribute_thu: customData.rules[_timeValueCounter]['DaysOfWeek']!['th'],
-          attribute_fr: customData.rules[_timeValueCounter]['DaysOfWeek']!['fr'],
-          attribute_sa: customData.rules[_timeValueCounter]['DaysOfWeek']!['sa'],
-          attribute_su: customData.rules[_timeValueCounter]['DaysOfWeek']!['su']));
+      if (customData.rules[_timeValueCounter].containsKey('DaysOfWeek')) {
+        rules.add(buildRulesDayOfWeek(
+            type: 'Rule',
+            xsiType: 'DaysOfWeek',
+            attribute_allow: 'true',
+            attribute_mo: customData.rules[_timeValueCounter]['DaysOfWeek']!['mo'],
+            attribute_tu: customData.rules[_timeValueCounter]['DaysOfWeek']!['tu'],
+            attribute_we: customData.rules[_timeValueCounter]['DaysOfWeek']!['we'],
+            attribute_thu: customData.rules[_timeValueCounter]['DaysOfWeek']!['th'],
+            attribute_fr: customData.rules[_timeValueCounter]['DaysOfWeek']!['fr'],
+            attribute_sa: customData.rules[_timeValueCounter]['DaysOfWeek']!['sa'],
+            attribute_su: customData.rules[_timeValueCounter]['DaysOfWeek']!['su']));
+      }
+
       //rules.add(buildRulesDayOfWeek(type: 'Rule', xsiType: 'DaysOfWeek', attribute_allow: 'true', attribute_mo: 'true', attribute_tu: 'true', attribute_we: 'true', attribute_thu: 'true', attribute_fr: 'true', attribute_sa: 'true', attribute_su: 'true'));
-      rules.add(buildRulesYear(
-          type: 'Rule',
-          xsiType: 'Year',
-          attribute_allow: 'true',
-          attribute_year: customData.rules[_timeValueCounter]['Year']!['yearNo'],
-          attribute_op: customData.rules[_timeValueCounter]['Year']!['operator']));
+      if (customData.rules[_timeValueCounter].containsKey('Year')) {
+        rules.add(buildRulesYear(
+            type: 'Rule',
+            xsiType: 'Year',
+            attribute_allow: 'true',
+            attribute_year: customData.rules[_timeValueCounter]['Year']!['yearNo'],
+            attribute_op: customData.rules[_timeValueCounter]['Year']!['operator']));
+      }
+
 
       /// And Node
       XmlNode buildAnd({required String type}) {
