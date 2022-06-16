@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lcn/Models/models.dart';
 import 'package:lcn/Services/auth_service.dart';
 import 'package:lcn/Services/makro_service.dart';
 import 'package:lcn/Services/monitoring_service.dart';
@@ -24,6 +25,10 @@ final dioTimerProvider = Provider<TimerService>((ref) {
   return TimerService(ref);
 });
 
+final dioMakroProvider = Provider<MakroService>((ref) {
+  return MakroService(ref);
+});
+
 final futureGetTableausProvider = FutureProvider<List>((ref) {
   return TableauService(ref).getTableaus();
 });
@@ -36,7 +41,7 @@ final futureLogoutProvider = FutureProvider<Response>((ref) {
   return AuthService(ref).logout();
 });
 
-final futureGetMakroProvider = FutureProvider<List>((ref) {
+final futureGetMakroProvider = FutureProvider<List<Macro>>((ref) {
   return MakroService(ref).getMacros();
 });
 

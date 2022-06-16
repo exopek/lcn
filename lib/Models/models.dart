@@ -84,3 +84,73 @@ class Events {
   }
 
 }
+
+
+class Macro {
+  Macro({required this.eventId, required this.authUsage, required this.hasChanged, required this.name, required this.description, required this.auth, required this.actions});
+
+  final String eventId;
+  final bool authUsage;
+  final bool hasChanged;
+  final String name;
+  final String description;
+  final List auth;
+  final List actions;
+
+  factory Macro.fromMap(Map<String, dynamic> data) {
+
+    final String eventId = data['EventId'];
+    final bool authUsage = data['AuthorizationUsage'];
+    final bool hasChanged = data['HasChanged'];
+    final String name = data['Name'];
+    final String description = data['Description'];
+    final List auth = data['AuthorizationList'];
+    final List actions = data['ActionList'];
+
+    return Macro(
+      eventId: eventId,
+      authUsage: authUsage,
+      hasChanged: hasChanged,
+      name: name,
+      description: description,
+      auth: auth,
+      actions: actions
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'eventId': eventId,
+      'authUsage': authUsage,
+      'hasChanged': hasChanged,
+      'name': name,
+      'description': description,
+      'auth': auth,
+      'actions': actions
+    };
+  }
+
+}
+
+/*
+class Macros {
+  Macros(this.macro, this.authUsage, this.hasChanged, this.name, this.description);
+
+
+  factory Macros.fromMap(Map<String, dynamic> data) {
+
+    final List<Event> macros = data['macros'];
+
+    return Macros(
+      macros: macros,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'macros': macros,
+    };
+  }
+
+}
+*/
