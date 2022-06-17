@@ -1,3 +1,7 @@
+
+
+/// Models zur WebApi Timer1
+
 class Event {
   Event({required this.name, required this.id, required this.enabled, required this.times, required this.rules, required this.rule});
 
@@ -85,6 +89,7 @@ class Events {
 
 }
 
+/// Models zur WebApi Macro1
 
 class Macro {
   Macro({required this.eventId, required this.authUsage, required this.hasChanged, required this.name, required this.description, required this.auth, required this.actions});
@@ -154,3 +159,54 @@ class Macros {
 
 }
 */
+
+/// Models zur WebApi Authentification1
+
+
+class CustomData {
+  CustomData({required this.fetchFromParent, required this.tableaus});
+
+  final bool fetchFromParent;
+  final List tableaus;
+
+  factory CustomData.fromMap(Map<String, dynamic> data) {
+
+    final bool fetchFromParent = data['FetchFromParent'];
+    final List tableaus = data['Strings'];
+
+    return CustomData(
+        fetchFromParent: fetchFromParent,
+        tableaus: tableaus
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'fetchFromParent': fetchFromParent,
+      'tableaus': tableaus
+    };
+  }
+
+}
+
+class UserRights{
+  UserRights({required this.userRights});
+
+  final List userRights;
+
+  factory UserRights.fromMap(Map<String, dynamic> data) {
+
+    final List userRights = data['UserRigths'];
+
+    return UserRights(
+        userRights: userRights
+    );
+
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'UserRigths': userRights
+    };
+  }
+}

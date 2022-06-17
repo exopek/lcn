@@ -16,6 +16,8 @@ import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart' as dioCookieManager;
 import 'package:cookie_jar/cookie_jar.dart';
 
+import '../Models/models.dart';
+
 
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -42,106 +44,22 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
 
   Future _getAuthStatus() async {
-    /*
-    //Response res = await post(url, body: {'username': _usernameController.text, 'password': _passwordController.text, 'createPersistentCookie': 'false', 'Content-Type': 'x-www-form-urlencoded'}, );
-    List<Cookie> cookies = [];
-    var cookieJar = CookieJar();
 
-    //cookies = await cookieJar.loadForRequest(Uri.parse("http://access.lcn.de/LCNGVSDemo/Authentification1.asmx/Login?username=gast&password=lcn&createPersistentCookie=false"));
-    Response res = await _dio.post(
-        url,
-        data: {'username': _usernameController.text, 'password': _passwordController.text, 'createPersistentCookie': 'false',},
-        options: Options(headers: {'Content-Type': 'application/json'}));
-
-    //print(cookies);
-    //print({res.headers.value('set-cookie')});
-    //cookieJar.
-    print('------------------------------------------');
-    print({res.headers.map.values.toList()[1]});
-    var session_list = res.headers.map.values.toList()[1];
-    print('------------------------------------------');
-    print(session_list[0].runtimeType);
-    print('------------------------------------------');
-    var first_session_list = session_list[0].split(RegExp(r"\;"));
-    var second_session_list = session_list[1].split(RegExp(r"\;"));
-    cookies = [Cookie('sessionId', '${first_session_list[0]}'), Cookie('gvsToken', '${second_session_list[0]}')];
-    await cookieJar.saveFromResponse(Uri.parse(url), cookies);
-    _dio.interceptors.add(dioCookieManager.CookieManager(cookieJar));
-    //print(dioCookieManager.CookieManager.getCookies(cookies));
-    //print(first_session_list);
-
-    print('------------------------------------------');
-    Map jas = res.data;
-    List elements = [];
-    List items = [];
-    */
-    List _customData = [];
-    final logind = ref.read(dioAuthProvider);
+    final auth = ref.read(dioAuthProvider);
     final customTableauProvider = ref.read(customTableauListProvider.state);
 
+    try {
+      CustomData _customData = await auth.login(_usernameController.text, _passwordController.text);
+      customTableauProvider.update((state) => _customData.tableaus);
 
-    Response bla = await logind.login(_usernameController.text, _passwordController.text);
-    //print(bla.headers.map.values.toList()[1].length);
-    print(bla.headers.map.values);
-    print(bla.data['d']);
-    if (bla.statusCode == 200 && bla.data['d']['IsSuccess'] == true) { /// bla.headers.map.values.toList()[1].length == 2
-      final futureGetTableaus = ref.read(dioTableauProvider);
-      //List bla2 = await futureGetTableaus.getTableaus();
-      print('----------------------');
-      print('login Data');
-      print('${bla.data['d']['CustomData']['Strings']}');
-      _customData = bla.data['d']['CustomData']['Strings'];
-      customTableauProvider.update((state) => _customData);
       Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => HomePage())
       );
-      //print('tableaus response');
-      //print(bla2.data);
-
-     //print(res1.data);
-      /*
-      //print(HashMap.from(jas.values.first));
-      var zuvt = HashMap.from(jas.values.first);
-      print(zuvt["CustomData"]["Strings"][0]);
-      var document = XmlDocument.parse(res.data);
-      print(res.data.runtimeType);
-      var id = document.findAllElements('UniqueServerId').first.innerXml;
-      var customData = document.findAllElements('CustomData').first.innerXml;
-      var customDataElement = document.findAllElements('Strings').first.children;
-      customDataElement.forEach((p0) {
-        if (p0.innerXml.isNotEmpty) {
-          elements.add(p0);
-          //print(elements);
-        } else {
-          print('false');
-        }
-
-      });
-      var customDataItem = customDataElement;
-      print('UniqueServerId: $id');
-      //print('CustomData: ${customDataItem}');
-      
-      var xmlTableauValue = elements[0].innerXml.split(RegExp(r"\\"));
-      print('TableauValue: ${xmlTableauValue[1]}');
-      elements.forEach((element) {
-        var temp = element.innerXml.split(RegExp(r"\\"));
-        items.add(temp[1]);
-        print(items);
-      });
-      //print(elements);
-      if (id.isNotEmpty) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => HomePage(tableauNames: items,))
-        );
-      } else {
-        print('access denied');
-      }
-      */
-    } else {
-      print('Dont Work');
+    } catch(e) {
+      throw(Exception(e));
     }
+
 
   }
 

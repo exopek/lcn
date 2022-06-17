@@ -20,23 +20,20 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   void initState() {
     super.initState();
-    print('HomePage names');
-    //print(widget.tableauNames);
-    //print(widget.tableauNames[0]['Value']);
-
   }
 
 
   @override
   Widget build(BuildContext context) {
     ref.listen(customTableauListProvider, (previous, next) {
-      setState(() {
+      if (previous != next) {
+        setState(() {});
+      }
 
-      });
     });
     final futureGetTableaus = ref.watch(futureGetTableausProvider);
-
     final List customTableaus = ref.read(customTableauListProvider);
+
     return Scaffold(
       backgroundColor: Color.fromRGBO(19, 19, 19, 1.0),
       bottomNavigationBar: BottomNavigationBar(
@@ -153,9 +150,10 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  Widget _lastTableaus(BuildContext context, String name, Map customData) {
-    final customTableausProvider = ref.read(customTableauListProvider.state);
+  Widget _lastTableaus(BuildContext context, String name, Map<String,List> customData) {
+    final customTableauProvider = ref.read(customTableauListProvider.state);
     final setUserCustomData = ref.read(dioAuthProvider);
+    //List _sortedCustomData = customData['Strings'];
     return Padding(
       padding: const EdgeInsets.only(top: 30.0, left: 8.0, right: 8.0),
       child: Container(
@@ -180,7 +178,10 @@ class _HomePageState extends ConsumerState<HomePage> {
             ))
           ),
           onPressed: () {
+            //customTableauProvider.update((state) => _customData.tableaus);
             setUserCustomData.getUserCustomData(customData: customData, currentUri: name);
+
+
             Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => WebViewPage(title: name.split(RegExp(r"\\")).last, url: 'http://access.lcn.de/LCNGVSDemo/control.aspx?ui=${name.split(RegExp(r"\\")).last}&proj=${name.split(RegExp(r"\\")).first}&loginName=gast&password=lcn'))

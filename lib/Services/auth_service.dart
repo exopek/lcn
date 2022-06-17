@@ -5,6 +5,7 @@ import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:html/parser.dart' as html;
+import 'package:lcn/Models/models.dart';
 import 'package:lcn/Providers/dio_provider.dart';
 import 'package:lcn/Providers/state_provider.dart';
 import 'package:lcn/State_Services/tableau_state_service.dart';
@@ -22,7 +23,7 @@ class AuthService {
   //final String basicUrl = "http://192.168.0.190/LCNGVS/WebServices/Authentification1.asmx";
 
 
-  Future login(String username, String password) async {
+  Future<CustomData> login(String username, String password) async {
     Options options = Options(
       headers: {},
     );
@@ -60,9 +61,11 @@ class AuthService {
       }
       );
 
-      return res;
+      /// Copy CustomData in Model
+      CustomData customData = CustomData.fromMap(res.data['d']['CustomData']);
+      return customData;
     } else {
-      return;
+      throw(Exception('CustomData no found'));
     }
   }
 
